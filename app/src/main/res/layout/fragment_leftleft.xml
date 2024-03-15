@@ -10,5 +10,74 @@
         android:id="@+id/textTest"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="Hello World!"
+        android:textAlignment="center" />
+
+    <Button
+        android:id="@+id/resetBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reset"
+        tools:ignore="HardcodedText"
+        android:onClick="handleReset"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="30dp" />
+
+    <CheckBox
+        android:id="@+id/checkBox1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:clickable="false"
+        android:text="Process 1"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/TextProcess1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Process 1"
+        tools:ignore="HardcodedText"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="30dp" />
+
+    <CheckBox
+        android:id="@+id/checkBox2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:clickable="false"
+        android:text="Process 1 info"
+        tools:ignore="HardcodedText"/>
+
+    <TextView
+        android:id="@+id/TextProcess2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Process 2 info"
+        tools:ignore="HardcodedText"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="30dp" />
+
+    <CheckBox
+        android:id="@+id/checkBox3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:clickable="false"
+        android:text="Process 3"
+        tools:ignore="HardcodedText"/>
+
+    <TextView
+        android:id="@+id/TextProcess3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Process 3 info"
+        tools:ignore="HardcodedText"/>
 </LinearLayout>

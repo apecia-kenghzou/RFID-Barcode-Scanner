@@ -61,8 +61,19 @@ import androidx.annotation.Nullable;
 
 public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener,IScanListener{
     private String tagNumber, readNumber, takeTime;
-    private TextView tag;
+    private TextView tag,TextProcess1,TextProcess2,TextProcess3;
+
+    private CheckBox checkBox1,checkBox2,checkBox3;
+
+    private Button resetBtn;
     private iScanInterface miScanInterface;
+
+
+    //Handle Reset button Function.
+    public void handleReset (View view){
+        System.out.println(("Reset!"));
+
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,6 +90,15 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         super.onViewCreated(view, savedInstanceState);
 
         tag = view.findViewById(R.id.textTest);
+        TextProcess1 = view.findViewById(R.id.TextProcess1);
+        TextProcess2 = view.findViewById(R.id.TextProcess2);
+        TextProcess3 = view.findViewById(R.id.TextProcess3);
+
+        //CheckBox1.setChecked(true)
+        checkBox1 = view.findViewById(R.id.checkBox1);
+        checkBox2 = view.findViewById(R.id.checkBox2);
+        checkBox3 = view.findViewById(R.id.checkBox3);
+
         //registerForContextMenu(view);
         Context context = requireContext();
         miScanInterface = new iScanInterface(context);
@@ -106,8 +126,9 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 //        miScanInterface.setBarcodeEnable(15,true);
 
 
-
     }
+
+
     @Override
     public void onDestroy() {
         super.onDestroy();
