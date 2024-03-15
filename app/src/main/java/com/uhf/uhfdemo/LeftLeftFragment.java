@@ -54,19 +54,64 @@ import static com.uhf.uhfdemo.MyApp.ifASCII;
 import static com.uhf.uhfdemo.MyApp.ifRMModule;
 import static com.uhf.uhfdemo.MyApp.ifSupportR2000Fun;
 
+import com.example.iscandemo.iScanInterface;
+import android.os.IScanListener;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener{
+public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener,IScanListener{
     private String tagNumber, readNumber, takeTime;
-
+    private TextView tag;
+    private iScanInterface miScanInterface;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         tagNumber = "Tags" + ":";
         readNumber = "Tags/S" + ":";
         takeTime = "Time(ms)" + ":";
+        LeftLeftFragment context = this;
+        //miScanInterface = new iScanInterface(context.getContext());
+
         return inflater.inflate(R.layout.fragment_leftleft, container, false);
+    }
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        tag = view.findViewById(R.id.textTest);
+        //registerForContextMenu(view);
+        Context context = requireContext();
+        miScanInterface = new iScanInterface(context);
+        miScanInterface.registerScan(this);
+        miScanInterface.setOCREnable(true,0);
+        miScanInterface.setAimLightMode(0);
+
+        miScanInterface.setOutputMode(1);
+//        miScanInterface.setBarcodeEnable(0,true);
+//
+//        miScanInterface.setBarcodeEnable(1,false);
+//        miScanInterface.setBarcodeEnable(2,false);
+//        miScanInterface.setBarcodeEnable(3,false);
+//        miScanInterface.setBarcodeEnable(4,false);
+//        miScanInterface.setBarcodeEnable(6,false);
+//        miScanInterface.setBarcodeEnable(48,false);
+//        miScanInterface.setBarcodeEnable(9,false);
+//        miScanInterface.setBarcodeEnable(10,false);
+//        miScanInterface.setBarcodeEnable(11,false);
+//        miScanInterface.setBarcodeEnable(12,false);
+//        miScanInterface.setBarcodeEnable(13,false);
+//        miScanInterface.setBarcodeEnable(19,false);
+//        miScanInterface.setBarcodeEnable(20,false);
+//        miScanInterface.setBarcodeEnable(17,true);
+//        miScanInterface.setBarcodeEnable(15,true);
+
+
+
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        miScanInterface.unregisterScan(this);
     }
 
     @Override
@@ -97,10 +142,21 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     @Override
     public void onKeyDown(int keyCode, KeyEvent event) {
 
+        miScanInterface.scan_start();
     }
 
     @Override
     public void onKeyUp(int keyCode, KeyEvent event) {
-
+        miScanInterface.scan_stop();
     }
+    @Override
+    public void onScanResults(String s, int i, long l, long l1, String s1) {
+        Log.d("idata", "data = " + s);
+        Log.d("idata", "type = " + i);
+        Log.d("idata", "scantime = " + l);
+        Log.d("idata", "keytime = " + l1);
+
+        tag.setText(s);
+    }
+
 }
