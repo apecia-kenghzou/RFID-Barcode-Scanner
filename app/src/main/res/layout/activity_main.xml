@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toBarcode"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -15,16 +16,17 @@
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:text="@string/app_name_custom"
             android:layout_gravity="center"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:text="@string/app_name_custom"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
     </FrameLayout>
 
-    <include layout="@layout/horizontal_line"
-        android:visibility="gone"/>
+    <include
+        layout="@layout/horizontal_line"
+        android:visibility="gone" />
 
     <FrameLayout
         android:id="@+id/showData"
@@ -37,6 +39,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/toLeftLeft"
+            style="@style/ImgStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="0.5"
+            android:contentDescription="@string/barcode_page"
+            android:onClick="onClick"
+            android:src="@drawable/main_click" />
 
         <include layout="@layout/vertical_line" />
 

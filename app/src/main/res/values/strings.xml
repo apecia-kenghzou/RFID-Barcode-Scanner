@@ -5,6 +5,7 @@
     <string name="port">Port No.：</string>
     <string name="ipAdress">IP Address</string>
     <string name="main_page">>Home</string>
+    <string name="barcode_page" translatable="false">>Barcode</string>
     <string name="search_tag">Tag Search</string>
     <string name="settings_page">Settings</string>
 

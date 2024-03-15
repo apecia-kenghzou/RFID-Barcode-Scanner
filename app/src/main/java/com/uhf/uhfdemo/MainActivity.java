@@ -64,12 +64,12 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
-
+    private LeftLeftFragment mLeftLeftFragment;
     private LeftFragment mLeftFragment;
     private RightFragment mRightFragment;
     private SearchFragment mSearchFragment;
     private FragmentManager manager;
-    private ImageView toLeft, toRight, searchTag;
+    private ImageView toLeftLeft,toLeft, toRight, searchTag;
 
     private Object currentFragment;
 
@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+        toLeftLeft = findViewById(R.id.toLeftLeft);
         toLeft = findViewById(R.id.toLeft);
         toRight = findViewById(R.id.toRight);
         searchTag = findViewById(R.id.searchTag);
@@ -452,16 +453,21 @@ public class MainActivity extends AppCompatActivity {
             //主界面
             // Main screen
             case 0:
+                currentFragment = mLeftLeftFragment = (mLeftLeftFragment == null ? new LeftLeftFragment() : mLeftLeftFragment);
+                break;
+            //主界面
+            // Main screen
+            case 1:
                 currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment() : mLeftFragment);
                 break;
             //设置界面
             // Setting screen    
-            case 1:
+            case 2:
                 currentFragment = mRightFragment = (mRightFragment == null ? new RightFragment() : mRightFragment);
                 break;
             //标签查找界面
             // Tag finder screen
-            case 2:
+            case 3:
                 currentFragment = mSearchFragment = (mSearchFragment == null ? new SearchFragment() : mSearchFragment);
                 break;
             default:
@@ -471,7 +477,7 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
     }
 
-    private int[] pageId = {R.id.toLeft, R.id.toRight, R.id.searchTag};
+    private int[] pageId = {R.id.toLeftLeft,R.id.toLeft, R.id.toRight, R.id.searchTag};
 
     public void onClick(View v) {
         for (int i = 0; i < pageId.length; i++) {
@@ -481,6 +487,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 setCurrentPage(i);
+                toLeftLeft.setImageResource(pageId[i] == R.id.toLeftLeft ? R.drawable.main_click : R.drawable.main_noclick);
                 toLeft.setImageResource(pageId[i] == R.id.toLeft ? R.drawable.main_click : R.drawable.main_noclick);
                 toRight.setImageResource(pageId[i] == R.id.toRight ? R.drawable.set_click : R.drawable.set_noclick);
                 searchTag.setImageResource(pageId[i] == R.id.searchTag ? R.drawable.search_clcik : R.drawable.search_noclcik);
