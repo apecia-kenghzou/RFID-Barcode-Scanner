@@ -20,11 +20,11 @@
         <include layout="@layout/vertical_line" />
 
         <TextView
-            style="@style/TextViewStyle"
             android:id="@+id/temp"
+            style="@style/TextViewStyle"
             android:layout_height="40dp"
             android:text="温度"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <include layout="@layout/vertical_line" />
 
@@ -33,6 +33,7 @@
             style="@style/TextViewStyle"
             android:layout_height="40dp"
             android:text="@string/clear_data" />
+
         <include layout="@layout/vertical_line" />
 
         <TextView
@@ -40,7 +41,7 @@
             style="@style/TextViewStyle"
             android:layout_height="match_parent"
             android:text="@string/export"
-            android:visibility="gone"/>
+            android:visibility="gone" />
     </LinearLayout>
 
     <include layout="@layout/horizontal_line" />
@@ -76,6 +77,7 @@
             android:entries="@array/readTagType" />
 
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -83,15 +85,15 @@
         android:visibility="gone">
 
         <EditText
+            android:id="@+id/et_power"
             style="@style/TextViewStyle"
-            android:layout_weight="0.5"
-            android:id="@+id/et_power"/>
+            android:layout_weight="0.5" />
 
         <Button
             android:id="@+id/btn_power"
             style="@style/TextViewStyle"
             android:layout_weight="0.5"
-            android:text="下发电量"/>
+            android:text="下发电量" />
 
 
     </LinearLayout>
