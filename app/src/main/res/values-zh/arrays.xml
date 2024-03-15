@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="title_test">
+        <item>常用设置</item>
+        <item>读写标签</item>
+        <item>锁定标签</item>
+        <item>销毁标签</item>
+        <item>关于与帮助</item>
+        <item>测试</item>
+    </string-array>
+
+    <string-array name="title">
+        <item>常用设置</item>
+        <item>读写标签</item>
+        <item>锁定标签</item>
+        <item>销毁标签</item>
+        <item>关于与帮助</item>
+    </string-array>
+
+
+
+    <string-array name="adress">
+        <item>端口号</item>
+        <item>ip地址</item>
+    </string-array>
+
+
+    <string-array name="frequency">
+        <item>中国(840－845MHz)</item>
+        <item>中国(920－925MHz)</item>
+        <item>欧洲(865－868MHz)</item>
+        <item>美国(902－928MHz)</item>
+    </string-array>
+
+    <string-array name="frequency_only_cn2_usa">
+        <item>中国(920－925MHz)</item>
+        <item>美国(902－928MHz)</item>
+        <item>UM2频率</item>
+    </string-array>
+
+    <string-array name="frequency_7100">
+        <item>中国(920－925MHz)</item>
+        <item>欧洲(865－868MHz)</item>
+        <item>美国(902－928MHz)</item>
+    </string-array>
+
+    <string-array name="tag_filter">
+        <item>EPC</item>
+        <item>TID</item>
+        <item>USR</item>
+    </string-array>
+
+    <string-array name="rw_filter">
+        <item>RFU</item>
+        <item>EPC</item>
+        <item>TID</item>
+        <item>USR</item>
+    </string-array>
+
+    <string-array name="sesionMode">
+        <item>S0</item>
+        <item>S1</item>
+        <item>S2</item>
+        <item>S3</item>
+    </string-array>
+
+
+    <string-array name="invMode_only_fast_auto">
+        <item>快速读取模式</item>
+        <item>自适应省电模式</item>
+    </string-array>
+
+    <string-array name="e710_invMode">
+        <item>普通模式</item>
+        <item>快速模式</item>
+        <item>智能模式</item>
+    </string-array>
+
+    <string-array name="RM01_invMode">
+        <item>智能模式</item>
+        <item>快速模式</item>
+        <item>自定义模式</item>
+    </string-array>
+
+    <string-array name="invMode">
+        <item>多标签模式</item>
+        <item>快速读取模式</item>
+        <item>超低功耗模式</item>
+        <item>测试模式模式</item>
+        <item>自适应省电模式</item>
+    </string-array>
+
+    <string-array name="readTagType">
+        <item>EPC</item>
+        <item>TID</item>
+        <item>EPC+TID</item>
+        <item>EPC+USR</item>
+        <item>EPC+TID+USR</item>
+        <item>EPC+TID+RFU</item>
+        <item>EPC+RFU</item>
+    </string-array>
+
+    <string-array name="readTagType_7100">
+        <item>EPC</item>
+        <item>TID</item>
+        <item>EPC+TID</item>
+        <item>EPC+USR</item>
+    </string-array>
+
+    <string-array name="protocol_type">
+        <item>国际标准协议</item>
+        <item>国标协议</item>
+    </string-array>
+
+    <string-array name="enable_disable">
+        <item>禁用</item>
+        <item>启用</item>
+    </string-array>
+
+    <string-array name="gb_select_area">
+        <item>编码区</item>
+    </string-array>
+
+    <string-array name="gb_area">
+        <item>标签信息区</item>
+        <item>编码区</item>
+        <item>安全区</item>
+        <item>用户区</item>
+    </string-array>
+
+    <string-array name="gb_lock_action">
+        <item>可读可写</item>
+        <item>可读不可写</item>
+        <item>不可读可写</item>
+        <item>不可读不可写</item>
+    </string-array>
+
+    <string-array name="gb_lock_object">
+        <item>存储区属性</item>
+        <item>安全模式</item>
+    </string-array>
+
+    <string-array name="gb_safe_mode">
+        <item>不需认证</item>
+        <item>需要认证，不需安全通信</item>
+        <item>需要认证，需要安全通信</item>
+    </string-array>
+
+
+
+
+</resources>
