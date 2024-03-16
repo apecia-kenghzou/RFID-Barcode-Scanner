@@ -19,10 +19,12 @@ import android.widget.TextView;
 import com.uhf.event.BackResult;
 import com.uhf.event.BaseFragment;
 import com.uhf.event.GetRFIDThread;
+import com.uhf.util.MLog;
 import com.uhf.util.MUtil;
 import com.uhf.base.UHFManager;
 import com.uhf.base.UHFModuleType;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import static android.text.TextUtils.isEmpty;
@@ -59,28 +61,28 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     }
 
     public void initView(View v) {
-        spSetFilterMb = v.findViewById(R.id.spinner_MB);
-        etSetAds = v.findViewById(R.id.Et_set_ads);
-        etSetLen = v.findViewById(R.id.Et_Set_len);
-        etSetData = v.findViewById(R.id.Et_Set_data);
-        cBSetFilterSave = v.findViewById(R.id.CB_Save);
-        if (UHFModuleType.SLR_MODULE == UHFManager.getType()) {
-            cBSetFilterSave.setVisibility(View.GONE);
-        }
+       // spSetFilterMb = v.findViewById(R.id.spinner_MB);
+       // etSetAds = v.findViewById(R.id.Et_set_ads);
+       // etSetLen = v.findViewById(R.id.Et_Set_len);
+       // etSetData = v.findViewById(R.id.Et_Set_data);
+       // cBSetFilterSave = v.findViewById(R.id.CB_Save);
+//        if (UHFModuleType.SLR_MODULE == UHFManager.getType()) {
+//            cBSetFilterSave.setVisibility(View.GONE);
+//        }
 
-        Bt_SetFilter = v.findViewById(R.id.Bt_SetFilter);
-        Bt_Clear = v.findViewById(R.id.Bt_Clear);
-        Bt_SetFilter.setOnClickListener(this);
-        Bt_Clear.setOnClickListener(this);
+       // Bt_SetFilter = v.findViewById(R.id.Bt_SetFilter);
+       // Bt_Clear = v.findViewById(R.id.Bt_Clear);
+       // Bt_SetFilter.setOnClickListener(this);
+       // Bt_Clear.setOnClickListener(this);
         //单位bit
         // Unit is bit
-        etSetAds.setText("32");
+        //etSetAds.setText("32");
         //单位bit
         // Unit is bit
-        etSetLen.setText("96");
+       // etSetLen.setText("96");
         //单位hex
         // unit is hex
-        etSetData.setText("1234567890ABCDEF12345678");
+      //  etSetData.setText("1234567890ABCDEF12345678");
 
         currentTag = v.findViewById(R.id.currentTag);
         showRssi = v.findViewById(R.id.showRssi);
@@ -89,6 +91,7 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
         searchFilterTag.setOnClickListener(this);
 
         content = getText(R.string.current_Tag).toString();
+
     }
 
     @Override
@@ -113,66 +116,66 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     @Override
 
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.Bt_SetFilter:
-                filter();
-                break;
-            case R.id.Bt_Clear:
-                clearFilter();
-                break;
-            case R.id.searchFilterTag:
-                startOrStopRFID();
-                break;
-            default:
-                break;
-        }
+//        switch (v.getId()) {
+//            case R.id.Bt_SetFilter:
+//                filter();
+//                break;
+//            case R.id.Bt_Clear:
+//                clearFilter();
+//                break;
+//            case R.id.searchFilterTag:
+//                startOrStopRFID();
+//                break;
+//            default:
+//                break;
+//        }
     }
 
-    private void filter() {
-        if (ifNotNull()) {
-            int ads = Integer.valueOf(etSetAds.getText().toString());
-            int len = Integer.valueOf(etSetLen.getText().toString());
-            int val = spSetFilterMb.getSelectedItemPosition();
-            int flag = 0;
-            if(cBSetFilterSave.isChecked()) flag =1;
-            else flag = 0;
-            boolean status = MyApp.getMyApp().getUhfMangerImpl().filterSet
-                    (MyApp.UHF[val], ads, len, etSetData.getText().toString(), flag);
-            if (status) {
-                //定频915MHZ,定功率25
-                // fixed frequency 915MHZ,fixed power 25
-                MyApp.getMyApp().getUhfMangerImpl().sessionModeSet(0);
-                MyApp.getMyApp().getUhfMangerImpl().powerSet(25);
-//                MyApp.getMyApp().getUhfMangerImpl().frequencyModeSet(4);
-                //MyApp.getMyApp().getUhfMangerImpl().frequenceRange_Set(0 ,1,new int[]{915250},0);
-                MyApp.getMyApp().getUhfMangerImpl().frequenceRange_Set(0 ,4,new int[]{915250,915750,916250,916750},0);
-                MUtil.show(R.string.fiter_success);
-            } else {
-                MUtil.show(R.string.fiter_failed);
-            }
-        } else {
-            MUtil.show(R.string.data_notnull);
-        }
+//    private void filter() {
+//        if (ifNotNull()) {
+//            int ads = Integer.valueOf(etSetAds.getText().toString());
+//            int len = Integer.valueOf(etSetLen.getText().toString());
+//            int val = spSetFilterMb.getSelectedItemPosition();
+//            int flag = 0;
+//            if(cBSetFilterSave.isChecked()) flag =1;
+//            else flag = 0;
+//            boolean status = MyApp.getMyApp().getUhfMangerImpl().filterSet
+//                    (MyApp.UHF[val], ads, len, etSetData.getText().toString(), flag);
+//            if (status) {
+//                //定频915MHZ,定功率25
+//                // fixed frequency 915MHZ,fixed power 25
+//                MyApp.getMyApp().getUhfMangerImpl().sessionModeSet(0);
+//                MyApp.getMyApp().getUhfMangerImpl().powerSet(25);
+////                MyApp.getMyApp().getUhfMangerImpl().frequencyModeSet(4);
+//                //MyApp.getMyApp().getUhfMangerImpl().frequenceRange_Set(0 ,1,new int[]{915250},0);
+//                MyApp.getMyApp().getUhfMangerImpl().frequenceRange_Set(0 ,4,new int[]{915250,915750,916250,916750},0);
+//                MUtil.show(R.string.fiter_success);
+//            } else {
+//                MUtil.show(R.string.fiter_failed);
+//            }
+//        } else {
+//            MUtil.show(R.string.data_notnull);
+//        }
+//
+//    }
 
-    }
-
-    private void clearFilter() {
-        int val = spSetFilterMb.getSelectedItemPosition();
-        int flag = 0;
-        if(cBSetFilterSave.isChecked()) flag =1;
-        else flag = 0;
-        boolean status = MyApp.getMyApp().getUhfMangerImpl().filterSet
-                (MyApp.UHF[val], 0, 0, etSetData.getText().toString(), flag);
-        if (status) {
-            MUtil.show(R.string.clean_success);
-            //重置功率为30，区域频率为美国
-            // Reset power is 30, area frequency is US
-            MyApp.getMyApp().getUhfMangerImpl().powerSet(30);
-            MyApp.getMyApp().getUhfMangerImpl().frequencyModeSet(3);
-        } else {
-            MUtil.show(R.string.clean_failed);
-        }
-    }
+//    private void clearFilter() {
+//        int val = spSetFilterMb.getSelectedItemPosition();
+//        int flag = 0;
+//        if(cBSetFilterSave.isChecked()) flag =1;
+//        else flag = 0;
+//        boolean status = MyApp.getMyApp().getUhfMangerImpl().filterSet
+//                (MyApp.UHF[val], 0, 0, etSetData.getText().toString(), flag);
+//        if (status) {
+//            MUtil.show(R.string.clean_success);
+//            //重置功率为30，区域频率为美国
+//            // Reset power is 30, area frequency is US
+//            MyApp.getMyApp().getUhfMangerImpl().powerSet(30);
+//            MyApp.getMyApp().getUhfMangerImpl().frequencyModeSet(3);
+//        } else {
+//            MUtil.show(R.string.clean_failed);
+//        }
+//    }
 
     private boolean ifNotNull() {
         return !isEmpty(etSetAds.getText()) && !isEmpty(etSetLen.getText()) && !isEmpty(etSetData.getText());
@@ -182,15 +185,16 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     //开启或停止RFID模块
     // Start Or Stop RFID
     public void startOrStopRFID() {
+        MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(1, 0, 6, 0);
         boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
         if (flag) {
             MyApp.getMyApp().getUhfMangerImpl().slrInventoryModeSet(4);
             MyApp.getMyApp().getUhfMangerImpl().startInventoryTag();
-            Bt_SetFilter.setEnabled(false);
-            Bt_Clear.setEnabled(false);
+           // Bt_SetFilter.setEnabled(false);
+            //Bt_Clear.setEnabled(false);
         } else {
-            Bt_SetFilter.setEnabled(true);
-            Bt_Clear.setEnabled(true);
+          //  Bt_SetFilter.setEnabled(true);
+           // Bt_Clear.setEnabled(true);
             MyApp.getMyApp().getUhfMangerImpl().stopInventory();
         }
 
@@ -216,6 +220,8 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void postResult(String[] tagData) {
         if (tagData != null) {
+            MLog.e("idata", Arrays.toString(tagData));
+            String tid =tagData[0];
             String epc = tagData[1];
             String pnr_flight = hexToString(epc);
             String pnr = pnr_flight.substring(0, 7); // Substring from index 0 to 5 (inclusive)

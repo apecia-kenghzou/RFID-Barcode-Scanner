@@ -13,17 +13,24 @@
         android:background="@color/colorPrimary"
         android:text="@string/findtag_operate" />
 
-    <include layout="@layout/tagfilter_view" />
+    <include
+        layout="@layout/tagfilter_view"
+        android:visibility="gone"
+        tools:visibility="gone" />
 
     <CheckBox
         android:id="@+id/CB_Save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/save" />
+        android:text="@string/save"
+        android:visibility="gone"
+        tools:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="gone">
 
         <Button
             android:id="@+id/Bt_SetFilter"

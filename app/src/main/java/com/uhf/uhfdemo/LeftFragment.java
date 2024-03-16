@@ -442,7 +442,7 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
     private List<String> gtinList = new ArrayList<>();
 
     private void updateUI(final String epc, final String tid, final String usr, final String rfu, final String rssi, final int readNumberss) {
-        Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
+        requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 String filterData = MyApp.currentInvtDataType == 1 || MyApp.currentInvtDataType == 2 || MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5 ? tid : epc;
