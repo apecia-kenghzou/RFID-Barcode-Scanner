@@ -50,14 +50,15 @@
             android:onClick="onClick"
             android:src="@drawable/main_click" />
 
-        <include layout="@layout/vertical_line" />
+<!--        <include layout="@layout/vertical_line" />-->
 
-        <ImageView
-            android:id="@+id/toLeft"
-            style="@style/ImgStyle"
-            android:contentDescription="@string/main_page"
-            android:onClick="onClick"
-            android:src="@drawable/main_click" />
+<!--        <ImageView-->
+<!--            android:id="@+id/toLeft"-->
+<!--            style="@style/ImgStyle"-->
+<!--            android:contentDescription="@string/main_page"-->
+<!--            android:onClick="onClick"-->
+<!--            android:src="@drawable/main_click" -->
+<!--            />-->
 
         <include layout="@layout/vertical_line" />
 
