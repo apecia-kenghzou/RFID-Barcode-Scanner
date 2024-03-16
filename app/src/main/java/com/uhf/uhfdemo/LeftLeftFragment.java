@@ -1,73 +1,60 @@
 package com.uhf.uhfdemo;
+import static com.uhf.uhfdemo.MyApp.ifRMModule;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.PowerManager;
-import android.os.SystemClock;
 //import android.support.annotation.NonNull;
 //import android.support.annotation.Nullable;
-import android.text.TextUtils;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
+import android.os.Handler;
 
+
+import com.google.gson.GsonBuilder;
+import com.uhf.base.UHFManager;
+import com.uhf.base.UHFModuleType;
 import com.uhf.event.BackResult;
 import com.uhf.event.BaseFragment;
 import com.uhf.event.GetRFIDThread;
 import com.uhf.event.OnKeyListener;
-import com.uhf.util.DataAdapter;
-import com.uhf.util.DataConversionUtils;
-import com.uhf.util.ExcelUtil;
 import com.uhf.util.MLog;
-import com.uhf.util.MUtil;
-import com.uhf.util.ThreadUtil;
-import com.uhf.base.UHFManager;
-import com.uhf.base.UHFModuleType;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static com.uhf.uhfdemo.MyApp.ifASCII;
-import static com.uhf.uhfdemo.MyApp.ifRMModule;
-import static com.uhf.uhfdemo.MyApp.ifSupportR2000Fun;
-
+import com.google.gson.Gson;
 import com.example.iscandemo.iScanInterface;
 import android.os.IScanListener;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener,IScanListener{
-    private String tagNumber, readNumber, takeTime;
+    private String[] tagNumber;
+    private String readNumber;
+    private String takeTime;
+
+    private String epc_to_store;
     private TextView tag,TextProcess1,TextProcess2,TextProcess3;
 
-    private CheckBox checkBox1,checkBox2,checkBox3;
-
+    private CheckBox checkBox1a,checkBox2,checkBox3;
+    private Integer mode =0;
+    // mode 0 == barcode
+    // mode 1 == api
+    // mode 2 == rfid
     private Button resetBtn;
     private iScanInterface miScanInterface;
-
+    UHFManager uhfmanager = UHFManager.getUHFImplSigleInstance(UHFModuleType.SLR_MODULE);
 
     //Handle Reset button Function.
     public void handleReset (View view){
@@ -75,14 +62,51 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     }
 
+    private Handler handler = new Handler();
+    public void startOrStopRFID() {
+        boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
+
+        int Temp = 0;
+        boolean ifOpenFan = false;
+        Runnable task;
+        if (flag) {
+            int labelNum = 0;
+            if (UHFModuleType.SLR_MODULE == UHFManager.getType() && MyApp.if5100Module){
+                MyApp.getMyApp().getUhfMangerImpl().slrInventoryModeSet(0);
+            }
+            Boolean i = MyApp.getMyApp().getUhfMangerImpl().startInventoryTag();
+
+            long pauseTime = 3;
+            long tempTime = pauseTime;
+            long startTime = System.currentTimeMillis() - tempTime;
+            long a = System.currentTimeMillis();
+
+           // reducingPowerDissipation(true);
+           // setVolumeTimer();
+            //acquireWakeLock();
+        } else {
+            long b = System.currentTimeMillis();
+
+            Boolean i = MyApp.getMyApp().getUhfMangerImpl().stopInventory();
+            mode=0;
+            checkBox3.setChecked(true);
+           // reducingPowerDissipation(false);
+           // cancelVolumeTimer();
+            //releaseWakeLock();
+        }
+        GetRFIDThread.getInstance().setIfPostMsg(flag);
+       // read_RFID.setText(flag ? R.string.stop_rfid : R.string.read_rfid);
+
+
+    }
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        tagNumber = "Tags" + ":";
+        tagNumber = new String[]{"Tags" + ":"};
         readNumber = "Tags/S" + ":";
         takeTime = "Time(ms)" + ":";
         LeftLeftFragment context = this;
         //miScanInterface = new iScanInterface(context.getContext());
-
+        GetRFIDThread.getInstance().setBackResult(this);
         return inflater.inflate(R.layout.fragment_leftleft, container, false);
     }
     @Override
@@ -95,10 +119,9 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         TextProcess3 = view.findViewById(R.id.TextProcess3);
 
         //CheckBox1.setChecked(true)
-        checkBox1 = view.findViewById(R.id.checkBox1);
+        checkBox1a = view.findViewById(R.id.checkBox1);
         checkBox2 = view.findViewById(R.id.checkBox2);
         checkBox3 = view.findViewById(R.id.checkBox3);
-
         //registerForContextMenu(view);
         Context context = requireContext();
         miScanInterface = new iScanInterface(context);
@@ -124,7 +147,26 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 //        miScanInterface.setBarcodeEnable(20,false);
 //        miScanInterface.setBarcodeEnable(17,true);
 //        miScanInterface.setBarcodeEnable(15,true);
-
+        boolean ifsucesss = uhfmanager.powerOn(); //Power on the module
+        if (!ifsucesss) {
+            MLog.e("powerOn failed\n");
+        }
+        SystemClock. sleep(3000);
+        uhfmanager.readTagModeSet(0,0,0,0); //Set the returned data type
+        uhfmanager.slrInventoryModeSet(3); //Set inventory mod
+        uhfmanager.startInventoryTag(); //Start inventory
+        boolean ifInventory = true;
+        boolean finalIfInventory = ifInventory;
+        new Thread(new Runnable() { //Start the thread to receive tag data
+            @Override
+            public void run() {
+                while(finalIfInventory)
+                    tagNumber = uhfmanager. readTagFromBuffer();
+            }
+        }).start();
+        uhfmanager.stopInventory();//stop inventory
+        ifInventory = false;
+        MLog.e(Arrays.toString(tagNumber));
 
     }
 
@@ -152,7 +194,13 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     @Override
     public void postResult(String[] tagData) {
-
+        MLog.e("idata","Reading tag Data");
+        String tid = tagData[0];//获取TID
+        String epc = tagData[1]; //拿到EPC
+        MLog.e("idata","tid = " + tid + " epc = " + epc);
+        tag.setText(epc);
+        updateUI(2,true);
+      //  MLog.e(Arrays.toString(tagData));
     }
 
     @Override
@@ -163,12 +211,72 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     @Override
     public void onKeyDown(int keyCode, KeyEvent event) {
 
-        miScanInterface.scan_start();
+       // startOrStopRFID();
+        //MLog.e("powerOn = " + MyApp.getMyApp().getUhfMangerImpl().powerOn());
+       // MyApp.getMyApp().getiScanInterface().scan_start();
+//        if(mode==0) {
+//            MyApp.getMyApp().getUhfMangerImpl().startInventoryTag();
+//            mode=1;
+//        }else{
+//
+//            MLog.e("stop scanning");
+//            MyApp.getMyApp().getUhfMangerImpl().stopInventory();
+//        }
+        //MLog.e(Arrays.toString(tagNumber));
+        if(mode ==0){
+            //MLog.e("barcode scanning");
+            miScanInterface.scan_start();
+
+        }else if(mode ==1){
+            MLog.e("idata","calling API");
+            mode =2;
+            String pfinfo ="{\"processed_pnr_id\":\"56RESO-2024-01-10\",\"products_air_segment_operating_flight_designator_carrier_code\":\"MH3023\"}";
+            GsonBuilder builder = new GsonBuilder();
+            builder.setPrettyPrinting();
+
+            Gson gson = builder.create();
+            PassengerFlightInfo jsonObject = new PassengerFlightInfo("56RESO-2024-01-10","MH3023");
+            MLog.e(String.valueOf(jsonObject));
+            // Access JSON object properties
+            String pnr_date = jsonObject.getPnr();
+            String flight = jsonObject.getFlightNo();
+            String[] pnr_parts = pnr_date.split("-");
+            MLog.e("idata",pnr_date);
+            // Get the first part
+            String pnr = pnr_parts[0];
+            epc_to_store = stringToHex(pnr+flight);
+            MLog.e("idata",epc_to_store);
+            // PassengerFlightInfo  a = new PassengerFlightInfo("asd,","asd");
+            updateUI(1,true);
+        } else if(mode ==2){
+            MLog.e("idata","rfid scanning");
+            boolean status = MyApp.getMyApp().getUhfMangerImpl().writeDataToEpc("000000", 2, 6, "504e52303031304d483333303332");
+            String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
+            MLog.e("idata",showText);
+            if(status){
+                MLog.e("idata","reading RFID");
+                //String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
+                String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
+                MLog.e("idata",result);
+                mode =3;
+                 updateUI(2,true);
+                //mode=3;
+            }
+
+            //startOrStopRFID();
+
+            //MLog.e(Arrays.toString(tagNumber));
+           // mode =0;
+        }else{
+            updateUI(3,true);
+        }
+
     }
 
     @Override
     public void onKeyUp(int keyCode, KeyEvent event) {
-        miScanInterface.scan_stop();
+
+        //miScanInterface.scan_stop();
     }
     @Override
     public void onScanResults(String s, int i, long l, long l1, String s1) {
@@ -176,8 +284,88 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         Log.d("idata", "type = " + i);
         Log.d("idata", "scantime = " + l);
         Log.d("idata", "keytime = " + l1);
+        Log.d("idata", "changing my checkbox to true = " + l1);
+        Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
 
+        updateUI(0,true);
         tag.setText(s);
+        mode =1;
+
+
+        Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
     }
+    private void updateUI(Integer i,Boolean b) {
+        //should have id + info to easily change the ui
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch (i) {
+                    case 0:
+                        checkBox1a.setChecked(true);
+                        break;
+                    case 1:
+                        checkBox2.setChecked(true);
+                        break;
+                    case 2:
+                        checkBox3.setChecked(true);
+                        break;
+                    default:
+                        checkBox1a.setChecked(false);
+                        checkBox2.setChecked(false);
+                        checkBox3.setChecked(false);
+                        break;
+                }
+            }
+        });
+    }
+    public static final String URL = "http://www.example.com/abc";
+    public void callAPI(){
+        OkHttpClient client = new OkHttpClient();
+
+        // Replace the URL with your API endpoint
+        String url = "https://api.example.com/data";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            ResponseBody responseBody = response.body();
+            if (responseBody != null) {
+                String jsonData = responseBody.string();
+                System.out.println("JSON Response:\n" + jsonData);
+            } else {
+                System.out.println("Response body is null");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String stringToHex(String input) {
+        // Get byte array of the string
+        byte[] bytes = input.getBytes();
+
+        // Initialize StringBuilder to store hexadecimal representation
+        StringBuilder hexString = new StringBuilder();
+
+        // Iterate over each byte and convert to hexadecimal
+        for (byte b : bytes) {
+            // Convert byte to unsigned integer
+            int unsignedByte = b & 0xff;
+            // Convert integer to hexadecimal string
+            String hex = Integer.toHexString(unsignedByte);
+            // Append leading zero if necessary
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            // Append hexadecimal string to result
+            hexString.append(hex);
+        }
+
+        // Return the hexadecimal representation
+        return hexString.toString();
+    }
+
 
 }
