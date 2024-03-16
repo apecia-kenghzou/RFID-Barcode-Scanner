@@ -7,7 +7,9 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        tools:visibility="visible">
 
         <TextView
             android:layout_width="wrap_content"
@@ -19,33 +21,35 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:entries="@array/tag_filter" />
+            android:entries="@array/search_filter" />
     </LinearLayout>
 
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        tools:visibility="gone">
+        android:visibility="visible"
+        tools:visibility="visible">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/startToEnd" />
+            android:text="Filter Text" />
 
         <EditText
             android:id="@+id/Et_set_ads"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="number"
-            android:maxLength="4" />
+            android:inputType="text"
+            android:maxLength="6" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/length" />
+            android:text="@string/length"
+            android:visibility="gone"
+            tools:visibility="gone" />
 
         <EditText
             android:id="@+id/Et_Set_len"
@@ -53,7 +57,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:inputType="number"
-            android:maxLength="4" />
+            android:maxLength="4"
+            android:visibility="gone"
+            tools:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
@@ -66,26 +72,33 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/aces_pwd" />
+            android:text="@string/aces_pwd"
+            android:visibility="gone"
+            tools:visibility="gone" />
 
         <EditText
             android:id="@+id/Et_AcPwdRead"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:maxLength="8" />
+            android:maxLength="8"
+            android:visibility="gone"
+            tools:visibility="gone" />
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         tools:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/data_hexadecimal" />
+            android:text="@string/data_hexadecimal"
+            android:visibility="gone"
+            tools:visibility="gone" />
 
         <EditText
             android:id="@+id/Et_Set_data"
@@ -93,7 +106,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="24"
-            android:inputType="none" />
+            android:inputType="none"
+            android:visibility="gone"
+            tools:visibility="gone" />
 
     </LinearLayout>
 </LinearLayout>

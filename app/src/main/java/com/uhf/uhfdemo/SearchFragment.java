@@ -35,7 +35,7 @@ import androidx.annotation.Nullable;
 
 public class SearchFragment extends BaseFragment implements View.OnClickListener, BackResult{
 
-    private EditText etSetAds, etSetLen, etSetData;
+    private EditText filterTextID, etSetLen, etSetData;
     private CheckBox cBSetFilterSave;
     private Spinner spSetFilterMb;
     private Button Bt_SetFilter, Bt_Clear;
@@ -61,6 +61,7 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     }
 
     public void initView(View v) {
+        filterTextID = v.findViewById(R.id.Et_set_ads);
        // spSetFilterMb = v.findViewById(R.id.spinner_MB);
        // etSetAds = v.findViewById(R.id.Et_set_ads);
        // etSetLen = v.findViewById(R.id.Et_Set_len);
@@ -177,9 +178,9 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
 //        }
 //    }
 
-    private boolean ifNotNull() {
-        return !isEmpty(etSetAds.getText()) && !isEmpty(etSetLen.getText()) && !isEmpty(etSetData.getText());
-    }
+//    private boolean ifNotNull() {
+//        return !isEmpty(etSetAds.getText()) && !isEmpty(etSetLen.getText()) && !isEmpty(etSetData.getText());
+//    }
 
     int slrMoudle = -1;
     //开启或停止RFID模块
@@ -223,24 +224,34 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
             MLog.e("idata", Arrays.toString(tagData));
             String tid =tagData[0];
             String epc = tagData[1];
+            String currentFilterText = String.valueOf(filterTextID.getText());
             String pnr_flight = hexToString(epc);
-            String pnr = pnr_flight.substring(0, 7); // Substring from index 0 to 5 (inclusive)
-            String flight = pnr_flight.substring(7);
-            final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
-            Log.e(TAG, "postResult: " + tagData[2]);
-            final String epcStr = content + epc;
-            requireActivity().runOnUiThread(new Runnable() {
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void run() {
-                    currentTag.setText(pnr+" : "+flight);
-                    singnalStrength.setProgress(progressAndRssi[0]);
-                    showRssi.setText(getString(R.string.current_rssi) + progressAndRssi[1]);
-                    playSound(progressAndRssi[0]);
-                    Log.e(TAG,"postResult :  playSound "+progressAndRssi[0]);
+            String pnr = pnr_flight.substring(0, 6); // Substring from index 0 to 5 (inclusive)
+            String flight = pnr_flight.substring(6);
 
-                }
-            });
+
+            MLog.e(currentFilterText);
+            if(currentFilterText.equals(pnr)) {
+
+                final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
+                Log.e(TAG, "postResult: " + tagData[2]);
+                final String epcStr = content + epc;
+                requireActivity().runOnUiThread(new Runnable() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void run() {
+                        currentTag.setText(pnr+" : "+flight);
+                        singnalStrength.setProgress(progressAndRssi[0]);
+                        showRssi.setText(getString(R.string.current_rssi) + progressAndRssi[1]);
+                        playSound(progressAndRssi[0]);
+                        Log.e(TAG,"postResult :  playSound "+progressAndRssi[0]);
+
+                    }
+                });
+            }else{
+
+            }
+
         } else {
 
             //无数据时候清空UI显示

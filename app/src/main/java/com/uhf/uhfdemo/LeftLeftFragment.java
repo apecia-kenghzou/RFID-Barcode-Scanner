@@ -248,7 +248,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             updateUI(1,true);
         } else if(mode ==2){
             MLog.e("idata","rfid scanning");
-            boolean status = MyApp.getMyApp().getUhfMangerImpl().writeDataToEpc("000000", 2, 6, "504e52303031304d483333303332");
+            boolean status = MyApp.getMyApp().getUhfMangerImpl().writeDataToEpc("000000", 2, 6, epc_to_store);
             String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
             MLog.e("idata",showText);
             if(status){
