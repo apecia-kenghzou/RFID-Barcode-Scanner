@@ -231,11 +231,9 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             MLog.e("idata","calling API");
             mode =2;
             String pfinfo ="{\"processed_pnr_id\":\"56RESO-2024-01-10\",\"products_air_segment_operating_flight_designator_carrier_code\":\"MH3023\"}";
-            GsonBuilder builder = new GsonBuilder();
-            builder.setPrettyPrinting();
-
-            Gson gson = builder.create();
-            PassengerFlightInfo jsonObject = new PassengerFlightInfo("56RESO-2024-01-10","MH3023");
+            Gson gson = new Gson();
+            PassengerFlightInfo jsonObject = gson.fromJson(pfinfo, PassengerFlightInfo.class);
+            //PassengerFlightInfo jsonObject = new PassengerFlightInfo("56RESO-2024-01-10","MH3023");
             MLog.e(String.valueOf(jsonObject));
             // Access JSON object properties
             String pnr_date = jsonObject.getPnr();
@@ -268,6 +266,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             //MLog.e(Arrays.toString(tagNumber));
            // mode =0;
         }else{
+            mode=0;
             updateUI(3,true);
         }
 
