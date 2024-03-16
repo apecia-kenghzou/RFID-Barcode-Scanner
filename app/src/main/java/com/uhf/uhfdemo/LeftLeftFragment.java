@@ -45,9 +45,9 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     private String takeTime;
 
     private String epc_to_store;
-    private TextView tag,TextProcess1,TextProcess2,TextProcess3;
+    private TextView tag,TextProcess1,TextProcess2,TextProcess3,TextProcess4;
 
-    private CheckBox checkBox1a,checkBox2,checkBox3;
+    private CheckBox checkBox1a,checkBox2,checkBox3,checkBox4;
     private Integer mode =0;
     // mode 0 == barcode
     // mode 1 == api
@@ -113,15 +113,22 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
+        //TextProcess1.setText("Loading...")
         tag = view.findViewById(R.id.textTest);
         TextProcess1 = view.findViewById(R.id.TextProcess1);
         TextProcess2 = view.findViewById(R.id.TextProcess2);
         TextProcess3 = view.findViewById(R.id.TextProcess3);
+        TextProcess4 = view.findViewById(R.id.TextProcess4);
+
 
         //CheckBox1.setChecked(true)
         checkBox1a = view.findViewById(R.id.checkBox1);
         checkBox2 = view.findViewById(R.id.checkBox2);
         checkBox3 = view.findViewById(R.id.checkBox3);
+        checkBox4 = view.findViewById(R.id.checkBox4);
+
+
         //registerForContextMenu(view);
         Context context = requireContext();
         miScanInterface = new iScanInterface(context);
