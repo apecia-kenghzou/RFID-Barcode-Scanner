@@ -217,14 +217,17 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     public void postResult(String[] tagData) {
         if (tagData != null) {
             String epc = tagData[1];
+            String pnr_flight = hexToString(epc);
+            String pnr = pnr_flight.substring(0, 7); // Substring from index 0 to 5 (inclusive)
+            String flight = pnr_flight.substring(7);
             final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
             Log.e(TAG, "postResult: " + tagData[2]);
             final String epcStr = content + epc;
-            Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
+            requireActivity().runOnUiThread(new Runnable() {
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void run() {
-                    currentTag.setText(epcStr);
+                    currentTag.setText(pnr+" : "+flight);
                     singnalStrength.setProgress(progressAndRssi[0]);
                     showRssi.setText(getString(R.string.current_rssi) + progressAndRssi[1]);
                     playSound(progressAndRssi[0]);
@@ -236,7 +239,7 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
 
             //无数据时候清空UI显示
             // Clear UI display when no data is available
-            Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
+            requireActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     currentTag.setText(null);
@@ -246,7 +249,18 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
             });
         }
     }
-
+    public static String hexToString(String hexString) {
+        StringBuilder result = new StringBuilder();
+        // Iterate over each pair of hexadecimal characters
+        for (int i = 0; i < hexString.length(); i += 2) {
+            // Convert each pair to its ASCII representation
+            String hexPair = hexString.substring(i, i + 2);
+            int decimalValue = Integer.parseInt(hexPair, 16);
+            // Append the character to the result
+            result.append((char) decimalValue);
+        }
+        return result.toString();
+    }
     private int[] convertRssiToPrgress(String rssiStr) {
         int[] progressAndRssi = new int[2];
         if (UHFModuleType.UM_MODULE == UHFManager.getType()) {

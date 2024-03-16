@@ -128,7 +128,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         miScanInterface.registerScan(this);
         miScanInterface.setOCREnable(true,0);
         miScanInterface.setAimLightMode(0);
-
+        MyApp.getMyApp().getUhfMangerImpl().powerSet(6);
         miScanInterface.setOutputMode(1);
 //        miScanInterface.setBarcodeEnable(0,true);
 //
