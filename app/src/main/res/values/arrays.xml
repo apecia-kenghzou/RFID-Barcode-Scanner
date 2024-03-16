@@ -57,7 +57,6 @@
     </string-array>
     <string-array name="search_filter">
         <item>PNR</item>
-        <item>FLIGHT</item>
     </string-array>
     <string-array name="rw_filter">
         <item>RFU</item>
