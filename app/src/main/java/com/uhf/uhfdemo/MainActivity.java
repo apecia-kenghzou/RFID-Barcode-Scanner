@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private RightFragment mRightFragment;
     private SearchFragment mSearchFragment;
     private FragmentManager manager;
-    private ImageView toLeftLeft,toLeft, toRight, searchTag;
+    private ImageView toLeftLeft, toRight, searchTag;
 
     private Object currentFragment;
 
@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
         toLeftLeft = findViewById(R.id.toLeftLeft);
-        toLeft = findViewById(R.id.toLeft);
         toRight = findViewById(R.id.toRight);
         searchTag = findViewById(R.id.searchTag);
         manager = getSupportFragmentManager();
@@ -477,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
     }
 
-    private int[] pageId = {R.id.toLeftLeft,R.id.toLeft, R.id.toRight, R.id.searchTag};
+    private int[] pageId = {R.id.toLeftLeft, R.id.toRight, R.id.searchTag};
 
     public void onClick(View v) {
         for (int i = 0; i < pageId.length; i++) {
@@ -488,7 +487,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 setCurrentPage(i);
                 toLeftLeft.setImageResource(pageId[i] == R.id.toLeftLeft ? R.drawable.main_click : R.drawable.main_noclick);
-                toLeft.setImageResource(pageId[i] == R.id.toLeft ? R.drawable.main_click : R.drawable.main_noclick);
                 toRight.setImageResource(pageId[i] == R.id.toRight ? R.drawable.set_click : R.drawable.set_noclick);
                 searchTag.setImageResource(pageId[i] == R.id.searchTag ? R.drawable.search_clcik : R.drawable.search_noclcik);
                 break;
