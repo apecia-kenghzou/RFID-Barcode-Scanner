@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">UHFDemo</string>
-    <string name="app_name_custom">Shanghai Taopin</string>
+    <string name="app_name">i-Forage</string>
+    <string name="app_name_custom">Apecia</string>
 
     <string name="port">Port No.：</string>
     <string name="ipAdress">IP Address</string>
