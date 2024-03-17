@@ -102,6 +102,13 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     }
     @Override
+    public void onResume() {
+        super.onResume();
+        // Check the checkbox state
+        updateUI(4,true);
+        mode=0;
+    }
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         tagNumber = new String[]{"Tags" + ":"};
         readNumber = "Tags/S" + ":";
@@ -139,7 +146,6 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
                 updateUI(4,true);
             }
         });
-
         //registerForContextMenu(view);
         Context context = requireContext();
         miScanInterface = new iScanInterface(context);
@@ -191,6 +197,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     @Override
     public void onDestroy() {
+
         super.onDestroy();
         miScanInterface.unregisterScan(this);
     }
@@ -345,10 +352,10 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
                         checkBox2.setChecked(false);
                         checkBox3.setChecked(false);
                         checkBox4.setChecked(false);
-                        TextProcess1.setText("");
-                        TextProcess2.setText("");
-                        TextProcess3.setText("");
-                        TextProcess4.setText("");
+                        TextProcess1.setText("Barcode: ");
+                        TextProcess2.setText("Info: ");
+                        TextProcess3.setText("Tag: ");
+                        TextProcess4.setText("Info: ");
                         break;
                 }
             }
