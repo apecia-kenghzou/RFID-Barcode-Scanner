@@ -36,6 +36,8 @@ import android.os.IScanListener;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.w3c.dom.Text;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -128,6 +130,15 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         checkBox3 = view.findViewById(R.id.checkBox3);
         checkBox4 = view.findViewById(R.id.checkBox4);
 
+        resetBtn = view.findViewById(R.id.resetBtn);
+
+        resetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mode = 0;
+                updateUI(4,true);
+            }
+        });
 
         //registerForContextMenu(view);
         Context context = requireContext();
@@ -249,6 +260,8 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             MLog.e("idata",pnr_date);
             // Get the first part
             String pnr = pnr_parts[0];
+            String showtextProcess2 = "pnr :"+pnr + "\n flight No:" + flight;
+            TextProcess2.setText(showtextProcess2);
             epc_to_store = stringToHex(pnr+flight);
             MLog.e("idata",epc_to_store);
             // PassengerFlightInfo  a = new PassengerFlightInfo("asd,","asd");
@@ -257,14 +270,23 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             MLog.e("idata","rfid scanning");
             boolean status = MyApp.getMyApp().getUhfMangerImpl().writeDataToEpc("000000", 2, 6, epc_to_store);
             String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
+            TextProcess3.setText(showText);
             MLog.e("idata",showText);
             if(status){
                 MLog.e("idata","reading RFID");
                 //String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
                 String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
                 MLog.e("idata",result);
-                mode =3;
-                 updateUI(2,true);
+                updateUI(2, true);
+                if (result!=null) {
+                    String showTP4 = "Upload Successful :\n RFID ID :"+result;
+                    TextProcess4.setText(showTP4);
+                    mode = 3;
+                    updateUI(3,true);
+                }else{
+                    String showTP4 = "Upload Unsuccessful ";
+                    TextProcess4.setText(showTP4);
+                }
                 //mode=3;
             }
 
@@ -274,7 +296,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
            // mode =0;
         }else{
             mode=0;
-            updateUI(3,true);
+            updateUI(4,true);
         }
 
     }
@@ -294,7 +316,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
 
         updateUI(0,true);
-        tag.setText(s);
+        TextProcess1.setText(s);
         mode =1;
 
 
@@ -315,10 +337,18 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
                     case 2:
                         checkBox3.setChecked(true);
                         break;
+                    case 3:
+                        checkBox4.setChecked(true);
+                        break;
                     default:
                         checkBox1a.setChecked(false);
                         checkBox2.setChecked(false);
                         checkBox3.setChecked(false);
+                        checkBox4.setChecked(false);
+                        TextProcess1.setText("");
+                        TextProcess2.setText("");
+                        TextProcess3.setText("");
+                        TextProcess4.setText("");
                         break;
                 }
             }
