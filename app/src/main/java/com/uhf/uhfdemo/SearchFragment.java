@@ -117,19 +117,19 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
     @Override
 
     public void onClick(View v) {
-//        switch (v.getId()) {
+        switch (v.getId()) {
 //            case R.id.Bt_SetFilter:
 //                filter();
 //                break;
 //            case R.id.Bt_Clear:
 //                clearFilter();
 //                break;
-//            case R.id.searchFilterTag:
-//                startOrStopRFID();
-//                break;
-//            default:
-//                break;
-//        }
+            case R.id.searchFilterTag:
+                startOrStopRFID();
+                break;
+            default:
+                break;
+        }
     }
 
 //    private void filter() {
@@ -231,7 +231,8 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
 
 
             MLog.e(currentFilterText);
-            if(currentFilterText.equals(pnr)) {
+            String uppcaseFilter = currentFilterText.toUpperCase();
+            if(uppcaseFilter.equals(pnr)) {
 
                 final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
                 Log.e(TAG, "postResult: " + tagData[2]);

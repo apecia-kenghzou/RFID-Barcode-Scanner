@@ -456,17 +456,17 @@ public class MainActivity extends AppCompatActivity {
                 break;
             //主界面
             // Main screen
-            case 1:
-                currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment() : mLeftFragment);
-                break;
+            //case 1:
+            //    currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment() : mLeftFragment);
+            //    break;
             //设置界面
             // Setting screen    
-            case 2:
+            case 1:
                 currentFragment = mRightFragment = (mRightFragment == null ? new RightFragment() : mRightFragment);
                 break;
             //标签查找界面
             // Tag finder screen
-            case 3:
+            case 2:
                 currentFragment = mSearchFragment = (mSearchFragment == null ? new SearchFragment() : mSearchFragment);
                 break;
             default:
