@@ -260,7 +260,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             MLog.e("idata",pnr_date);
             // Get the first part
             String pnr = pnr_parts[0];
-            String showtextProcess2 = "pnr :"+pnr + "\n flight No:" + flight;
+            String showtextProcess2 = "pnr :"+pnr + "\nflight No:" + flight;
             TextProcess2.setText(showtextProcess2);
             epc_to_store = stringToHex(pnr+flight);
             MLog.e("idata",epc_to_store);
