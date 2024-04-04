@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private LeftFragment mLeftFragment;
     private RightFragment mRightFragment;
     private SearchFragment mSearchFragment;
+
     private FragmentManager manager;
     private ImageView toLeftLeft, toRight, searchTag;
 
@@ -456,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             //主界面
             // Main screen
-            //case 1:
+            //case 2:
             //    currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment() : mLeftFragment);
             //    break;
             //设置界面
@@ -469,6 +470,7 @@ public class MainActivity extends AppCompatActivity {
             case 2:
                 currentFragment = mSearchFragment = (mSearchFragment == null ? new SearchFragment() : mSearchFragment);
                 break;
+
             default:
                 break;
         }

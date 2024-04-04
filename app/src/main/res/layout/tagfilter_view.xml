@@ -31,11 +31,17 @@
         android:visibility="visible"
         tools:visibility="visible">
 
+
+        <CheckBox
+            android:id="@+id/enable_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Filter Text" />
-
         <EditText
             android:id="@+id/Et_set_ads"
             android:layout_width="wrap_content"

@@ -22,10 +22,21 @@
         android:layout_weight="1"
         android:checked="false"
         android:clickable="false"
-        android:text="1. Scan Barcode"
+        android:text="1. Scan Boarding Pass"
         android:textSize="16sp"
         android:textStyle="bold"
-        tools:ignore="HardcodedText" />
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. Scan Boarding Pass"
+        android:textColor="#000000"
+        android:textSize="34sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/TextProcess1"
@@ -33,6 +44,8 @@
         android:layout_height="0dp"
         android:layout_weight="2"
         android:text="Barcode:"
+        android:textSize="24sp"
+        android:textStyle="bold"
         tools:ignore="HardcodedText" />
 
 
@@ -43,11 +56,22 @@
         android:layout_weight="1"
         android:checked="false"
         android:clickable="false"
-        android:text="2. Get Information"
+        android:text="2. Write To Tag"
         android:textSize="16sp"
         android:textStyle="bold"
-        tools:ignore="HardcodedText" />
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:visibility="gone" />
 
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. Write To RFID Tag"
+        android:textColor="#000000"
+        android:textSize="34sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/TextProcess2"
@@ -55,28 +79,9 @@
         android:layout_height="0dp"
         android:layout_weight="2"
         android:text="Info:"
-        tools:ignore="HardcodedText" />
-
-    <CheckBox
-        android:id="@+id/checkBox3"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:checked="false"
-        android:clickable="false"
-        android:text="3. Write to Tag"
-        android:textSize="16sp"
+        android:textSize="24sp"
         android:textStyle="bold"
         tools:ignore="HardcodedText" />
-
-    <TextView
-        android:id="@+id/TextProcess3"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:text="Tag:"
-        tools:ignore="HardcodedText" />
-
 
     <CheckBox
         android:id="@+id/checkBox4"
@@ -85,10 +90,12 @@
         android:layout_weight="1"
         android:checked="false"
         android:clickable="false"
-        android:text="4. Upload Information"
+        android:text="3. Upload Information"
         android:textSize="16sp"
         android:textStyle="bold"
-        tools:ignore="HardcodedText" />
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:visibility="gone" />
 
     <TextView
         android:id="@+id/TextProcess4"
@@ -96,9 +103,20 @@
         android:layout_height="0dp"
         android:layout_weight="2"
         android:text="Info:"
-        tools:ignore="HardcodedText" />
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:visibility="gone" />
 
-
+    <Button
+        android:id="@+id/retryBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:onClick="handleReset"
+        android:text="Retry Upload"
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:visibility="gone" />
     <Button
         android:id="@+id/resetBtn"
         android:layout_width="match_parent"
@@ -107,4 +125,5 @@
         android:text="Reset"
         tools:ignore="HardcodedText"
         android:layout_gravity="end"/>
+
 </LinearLayout>

@@ -5,6 +5,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 //import android.support.annotation.NonNull;
 //import android.support.annotation.Nullable;
@@ -38,9 +39,19 @@ import androidx.annotation.Nullable;
 
 import org.w3c.dom.Text;
 
+import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
+import java.time.LocalDate;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
+import com.uhf.util.HttpRequestTask;
 public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener,IScanListener{
     private String[] tagNumber;
     private String readNumber;
@@ -58,6 +69,8 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     private iScanInterface miScanInterface;
     UHFManager uhfmanager = UHFManager.getUHFImplSigleInstance(UHFModuleType.SLR_MODULE);
 
+    PassengerFlightInfo PFI = new PassengerFlightInfo(null,null);
+
     //Handle Reset button Function.
     public void handleReset (View view){
         System.out.println(("Reset!"));
@@ -65,6 +78,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     }
 
     private Handler handler = new Handler();
+
     public void startOrStopRFID() {
         boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
 
@@ -127,14 +141,12 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         tag = view.findViewById(R.id.textTest);
         TextProcess1 = view.findViewById(R.id.TextProcess1);
         TextProcess2 = view.findViewById(R.id.TextProcess2);
-        TextProcess3 = view.findViewById(R.id.TextProcess3);
         TextProcess4 = view.findViewById(R.id.TextProcess4);
 
 
         //CheckBox1.setChecked(true)
-        checkBox1a = view.findViewById(R.id.checkBox1);
-        checkBox2 = view.findViewById(R.id.checkBox2);
-        checkBox3 = view.findViewById(R.id.checkBox3);
+        //checkBox1a = view.findViewById(R.id.checkBox1);
+        //checkBox2 = view.findViewById(R.id.checkBox2);
         checkBox4 = view.findViewById(R.id.checkBox4);
 
         resetBtn = view.findViewById(R.id.resetBtn);
@@ -144,6 +156,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             public void onClick(View view) {
                 mode = 0;
                 updateUI(4,true);
+                new HttpRequestTask().execute();
             }
         });
         //registerForContextMenu(view);
@@ -248,53 +261,63 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 //            MyApp.getMyApp().getUhfMangerImpl().stopInventory();
 //        }
         //MLog.e(Arrays.toString(tagNumber));
-        if(mode ==0){
+        if(mode ==0) {
             //MLog.e("barcode scanning");
             miScanInterface.scan_start();
 
+//        }else if(mode ==1){
+//            MLog.e("idata","calling API");
+//            mode =2;
+//            String pfinfo ="{\"processed_pnr_id\":\"56RESO-2024-01-10\",\"products_air_segment_operating_flight_designator_carrier_code\":\"MH3023\"}";
+//            Gson gson = new Gson();
+//            PassengerFlightInfo jsonObject = gson.fromJson(pfinfo, PassengerFlightInfo.class);
+//            //PassengerFlightInfo jsonObject = new PassengerFlightInfo("56RESO-2024-01-10","MH3023");
+//            MLog.e(String.valueOf(jsonObject));
+//            // Access JSON object properties
+//            String pnr_date = jsonObject.getPnr();
+//            String flight = jsonObject.getFlightNo();
+//            String[] pnr_parts = pnr_date.split("-");
+//            MLog.e("idata",pnr_date);
+//            // Get the first part
+//            String pnr = pnr_parts[0];
+//            String showtextProcess2 = "pnr :"+pnr + "\nflight No:" + flight;
+//            TextProcess2.setText(showtextProcess2);
+//            epc_to_store = stringToHex(pnr+flight);
+//            MLog.e("idata",epc_to_store);
+//            // PassengerFlightInfo  a = new PassengerFlightInfo("asd,","asd");
+//            updateUI(1,true);
+//        }
         }else if(mode ==1){
-            MLog.e("idata","calling API");
-            mode =2;
-            String pfinfo ="{\"processed_pnr_id\":\"56RESO-2024-01-10\",\"products_air_segment_operating_flight_designator_carrier_code\":\"MH3023\"}";
-            Gson gson = new Gson();
-            PassengerFlightInfo jsonObject = gson.fromJson(pfinfo, PassengerFlightInfo.class);
-            //PassengerFlightInfo jsonObject = new PassengerFlightInfo("56RESO-2024-01-10","MH3023");
-            MLog.e(String.valueOf(jsonObject));
-            // Access JSON object properties
-            String pnr_date = jsonObject.getPnr();
-            String flight = jsonObject.getFlightNo();
-            String[] pnr_parts = pnr_date.split("-");
-            MLog.e("idata",pnr_date);
-            // Get the first part
-            String pnr = pnr_parts[0];
-            String showtextProcess2 = "pnr :"+pnr + "\nflight No:" + flight;
-            TextProcess2.setText(showtextProcess2);
-            epc_to_store = stringToHex(pnr+flight);
-            MLog.e("idata",epc_to_store);
-            // PassengerFlightInfo  a = new PassengerFlightInfo("asd,","asd");
-            updateUI(1,true);
-        } else if(mode ==2){
             MLog.e("idata","rfid scanning");
+            String pnr = PFI.getPnr();
+            String flight = PFI.getFlightNo();
+
+//            String showtextProcess2 = "pnr :"+pnr + "\nflight No:" + flight;
+//            TextProcess2.setText(showtextProcess2);
+            epc_to_store = stringToHex(pnr+flight);
             boolean status = MyApp.getMyApp().getUhfMangerImpl().writeDataToEpc("000000", 2, 6, epc_to_store);
-            String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
-            TextProcess3.setText(showText);
-            MLog.e("idata",showText);
+            //String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
+
+
             if(status){
                 MLog.e("idata","reading RFID");
                 //String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
-                String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
-                MLog.e("idata",result);
-                updateUI(2, true);
-                if (result!=null) {
-                    String showTP4 = "Upload Successful :\n RFID ID :"+result;
-                    TextProcess4.setText(showTP4);
-                    mode = 3;
-                    updateUI(3,true);
-                }else{
-                    String showTP4 = "Upload Unsuccessful ";
-                    TextProcess4.setText(showTP4);
+               // String result_tid = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
+
+                String result_epc = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
+                //MLog.e("idata",result_tid);
+                MLog.e("idata",result_epc);
+
+                String showText =(result_epc.equalsIgnoreCase(epc_to_store) ? getString(R.string.write_success) : getString(R.string.write_failed));
+                TextProcess2.setText(showText);
+                if (result_epc.equalsIgnoreCase(epc_to_store) ) {
+
+                    updateUI(1, true);
+                    mode=2;
                 }
                 //mode=3;
+            }else{
+                mode =1;
             }
 
             //startOrStopRFID();
@@ -320,15 +343,62 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         Log.d("idata", "scantime = " + l);
         Log.d("idata", "keytime = " + l1);
         Log.d("idata", "changing my checkbox to true = " + l1);
-        Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
+       // Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
+        String ss_name =  s.substring(2,21);
+        String ss_pnr = s.substring(23,29);
+        String ss_flight = s.substring(30,38);
+        String ss_no = s.substring(39,43);
+        String ss_date = s.substring(44,56);
+        String date  = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Year currentYear = Year.now();
+            date = decodeJulianDate(Integer.parseInt(String.valueOf(currentYear)),Integer.parseInt(ss_date.substring(0,3)));
+        }
+        String seats = ss_date.substring(4,8);
+        String seq = ss_date.substring(8,12);
+        MLog.e(date);
+        String [] name_part = ss_name.split("/");
 
         updateUI(0,true);
-        TextProcess1.setText(s);
+        MLog.e("PNR:"+ss_pnr);
+        String origin=ss_flight.substring(0,3);
+        String dest = ss_flight.substring(3,6);
+        String flight_no = ss_flight.substring(ss_flight.length() - 2)+ss_no;
+        MLog.e("f_name:"+name_part[0]);
+        MLog.e("l_name:"+name_part[1]);
+
+        MLog.e("flight_no:"+flight_no);
+        MLog.e("Origin:"+origin);
+        MLog.e("Dest:"+dest);
+        PFI.renit(ss_pnr,name_part[0],name_part[1],flight_no,date,origin,dest);
+        String showtextProcess2 = "PNR :"+ss_pnr + "\nFlight No:" + flight_no;
+        TextProcess1.setText(showtextProcess2);
         mode =1;
 
 
-        Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
+     //   Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());
     }
+    public static String decodeJulianDate(int year, int dayOfYear) {
+        // Construct LocalDate object for January 1st of the specified year
+        LocalDate january1st = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            january1st = LocalDate.of(year, 1, 1);
+            january1st = january1st.plusDays(dayOfYear - 1); // Subtract 1 because day of year is 1-indexed
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); // Example: "dd-MM-yyyy" for day-month-year format
+            // Format the LocalDate object using the formatter
+            String formattedDate = january1st.format(formatter);
+            return formattedDate;
+        }else{
+            String date =null;
+            return date;
+        }
+
+
+
+
+
+    }
+
     private void updateUI(Integer i,Boolean b) {
         //should have id + info to easily change the ui
         requireActivity().runOnUiThread(new Runnable() {
@@ -336,25 +406,20 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             public void run() {
                 switch (i) {
                     case 0:
-                        checkBox1a.setChecked(true);
+                        //checkBox1a.setChecked(true);
                         break;
                     case 1:
-                        checkBox2.setChecked(true);
+                        //checkBox2.setChecked(true);
                         break;
                     case 2:
-                        checkBox3.setChecked(true);
-                        break;
-                    case 3:
                         checkBox4.setChecked(true);
                         break;
                     default:
-                        checkBox1a.setChecked(false);
-                        checkBox2.setChecked(false);
-                        checkBox3.setChecked(false);
+                       // checkBox1a.setChecked(false);
+                        //checkBox2.setChecked(false);
                         checkBox4.setChecked(false);
                         TextProcess1.setText("Barcode: ");
                         TextProcess2.setText("Info: ");
-                        TextProcess3.setText("Tag: ");
                         TextProcess4.setText("Info: ");
                         break;
                 }

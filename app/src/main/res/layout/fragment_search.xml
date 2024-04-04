@@ -26,6 +26,7 @@
         android:visibility="gone"
         tools:visibility="gone" />
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,8 +51,12 @@
     <TextView
         android:id="@+id/currentTag"
         style="@style/SpinnerStyle"
+        android:layout_width="match_parent"
+        android:layout_height="122dp"
         android:layout_marginTop="10dp"
-        android:hint="@string/current_Tag" />
+        android:hint="@string/current_Tag"
+        android:textSize="34sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/showRssi"

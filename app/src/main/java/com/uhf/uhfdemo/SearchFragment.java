@@ -36,7 +36,7 @@ import androidx.annotation.Nullable;
 public class SearchFragment extends BaseFragment implements View.OnClickListener, BackResult{
 
     private EditText filterTextID, etSetLen, etSetData;
-    private CheckBox cBSetFilterSave;
+    private CheckBox cBSetFilterSave,enable_filter;
     private Spinner spSetFilterMb;
     private Button Bt_SetFilter, Bt_Clear;
 
@@ -62,28 +62,29 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
 
     public void initView(View v) {
         filterTextID = v.findViewById(R.id.Et_set_ads);
-       // spSetFilterMb = v.findViewById(R.id.spinner_MB);
-       // etSetAds = v.findViewById(R.id.Et_set_ads);
-       // etSetLen = v.findViewById(R.id.Et_Set_len);
-       // etSetData = v.findViewById(R.id.Et_Set_data);
-       // cBSetFilterSave = v.findViewById(R.id.CB_Save);
+        enable_filter = v.findViewById(R.id.enable_filter);
+        // spSetFilterMb = v.findViewById(R.id.spinner_MB);
+        // etSetAds = v.findViewById(R.id.Et_set_ads);
+        // etSetLen = v.findViewById(R.id.Et_Set_len);
+        // etSetData = v.findViewById(R.id.Et_Set_data);
+        // cBSetFilterSave = v.findViewById(R.id.CB_Save);
 //        if (UHFModuleType.SLR_MODULE == UHFManager.getType()) {
 //            cBSetFilterSave.setVisibility(View.GONE);
 //        }
 
-       // Bt_SetFilter = v.findViewById(R.id.Bt_SetFilter);
-       // Bt_Clear = v.findViewById(R.id.Bt_Clear);
-       // Bt_SetFilter.setOnClickListener(this);
-       // Bt_Clear.setOnClickListener(this);
+        // Bt_SetFilter = v.findViewById(R.id.Bt_SetFilter);
+        // Bt_Clear = v.findViewById(R.id.Bt_Clear);
+        // Bt_SetFilter.setOnClickListener(this);
+        // Bt_Clear.setOnClickListener(this);
         //单位bit
         // Unit is bit
         //etSetAds.setText("32");
         //单位bit
         // Unit is bit
-       // etSetLen.setText("96");
+        // etSetLen.setText("96");
         //单位hex
         // unit is hex
-      //  etSetData.setText("1234567890ABCDEF12345678");
+        //  etSetData.setText("1234567890ABCDEF12345678");
 
         currentTag = v.findViewById(R.id.currentTag);
         showRssi = v.findViewById(R.id.showRssi);
@@ -111,7 +112,7 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
         GetRFIDThread.getInstance().setSearchTag(false);
         //clearFilter();
         if (slrMoudle !=  MyApp.getMyApp().getUhfMangerImpl().slrInventoryModelGet())
-        MyApp.getMyApp().getUhfMangerImpl().slrInventoryModeSet(slrMoudle);
+            MyApp.getMyApp().getUhfMangerImpl().slrInventoryModeSet(slrMoudle);
     }
 
     @Override
@@ -191,11 +192,11 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
         if (flag) {
             MyApp.getMyApp().getUhfMangerImpl().slrInventoryModeSet(4);
             MyApp.getMyApp().getUhfMangerImpl().startInventoryTag();
-           // Bt_SetFilter.setEnabled(false);
+            // Bt_SetFilter.setEnabled(false);
             //Bt_Clear.setEnabled(false);
         } else {
-          //  Bt_SetFilter.setEnabled(true);
-           // Bt_Clear.setEnabled(true);
+            //  Bt_SetFilter.setEnabled(true);
+            // Bt_Clear.setEnabled(true);
             MyApp.getMyApp().getUhfMangerImpl().stopInventory();
         }
 
@@ -232,8 +233,26 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
 
             MLog.e(currentFilterText);
             String uppcaseFilter = currentFilterText.toUpperCase();
-            if(uppcaseFilter.equals(pnr)) {
+            if(enable_filter.isChecked()) {
+                if (uppcaseFilter.equals(pnr)) {
 
+                    final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
+                    Log.e(TAG, "postResult: " + tagData[2]);
+                    final String epcStr = content + epc;
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @SuppressLint("SetTextI18n")
+                        @Override
+                        public void run() {
+                            currentTag.setText(pnr + " : " + flight);
+                            singnalStrength.setProgress(progressAndRssi[0]);
+                            showRssi.setText(getString(R.string.current_rssi) + progressAndRssi[1]);
+                            playSound(progressAndRssi[0]);
+                            Log.e(TAG, "postResult :  playSound " + progressAndRssi[0]);
+
+                        }
+                    });
+                }
+            }else{
                 final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
                 Log.e(TAG, "postResult: " + tagData[2]);
                 final String epcStr = content + epc;
@@ -241,16 +260,14 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void run() {
-                        currentTag.setText(pnr+" : "+flight);
+                        currentTag.setText(pnr + " : " + flight);
                         singnalStrength.setProgress(progressAndRssi[0]);
                         showRssi.setText(getString(R.string.current_rssi) + progressAndRssi[1]);
                         playSound(progressAndRssi[0]);
-                        Log.e(TAG,"postResult :  playSound "+progressAndRssi[0]);
+                        Log.e(TAG, "postResult :  playSound " + progressAndRssi[0]);
 
                     }
                 });
-            }else{
-
             }
 
         } else {
