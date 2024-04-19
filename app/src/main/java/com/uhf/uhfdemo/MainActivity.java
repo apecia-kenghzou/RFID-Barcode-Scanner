@@ -41,13 +41,37 @@ import com.uhf.util.MLog;
 import com.uhf.util.MUtil;
 import com.uhf.util.ThreadUtil;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import realid.rfidlib.EmshConstant;
 import realid.rfidlib.MyLib;
+import software.amazon.awssdk.crt.CRT;
+import software.amazon.awssdk.crt.mqtt5.Mqtt5Client;
+import software.amazon.awssdk.crt.mqtt5.Mqtt5ClientOptions;
+import software.amazon.awssdk.crt.mqtt5.OnAttemptingConnectReturn;
+import software.amazon.awssdk.crt.mqtt5.OnConnectionFailureReturn;
+import software.amazon.awssdk.crt.mqtt5.OnConnectionSuccessReturn;
+import software.amazon.awssdk.crt.mqtt5.OnDisconnectionReturn;
+import software.amazon.awssdk.crt.mqtt5.OnStoppedReturn;
+import software.amazon.awssdk.crt.mqtt5.PublishResult;
+import software.amazon.awssdk.crt.mqtt5.QOS;
+import software.amazon.awssdk.crt.mqtt5.packets.ConnectPacket;
+import software.amazon.awssdk.crt.mqtt5.packets.DisconnectPacket;
+import software.amazon.awssdk.crt.mqtt5.packets.PublishPacket;
+import software.amazon.awssdk.iot.AwsIotMqtt5ClientBuilder;
 
 import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_BATTERY_ERROR;
 import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_CHG_FULL;
@@ -62,6 +86,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import org.json.JSONArray;
 
 public class MainActivity extends AppCompatActivity {
     private LeftLeftFragment mLeftLeftFragment;
@@ -86,18 +112,42 @@ public class MainActivity extends AppCompatActivity {
     private int setPower = 33;
     private MMKV mkv;
 
+    Map<String, String> resourceMap = new HashMap<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
-        if (Build.VERSION.SDK_INT > 22)
-            requestPermission();
-        else
-            init();
+
+
+
+        init();
+        loadAssets();
+       // test(resourceMap);
     }
 
+
+//    public void test(Map<String, String> resrc){
+//
+//
+//        Mqtt5Client client;
+//        AwsIotMqtt5ClientBuilder builder = AwsIotMqtt5ClientBuilder.newDirectMqttBuilderWithMtlsFromPath(
+//                resrc.get("endpoint.txt"), resrc.get("certificate.pem"), resrc.get("privatekey.pem"));
+//        ConnectPacket.ConnectPacketBuilder connectProperties = new ConnectPacket.ConnectPacketBuilder();
+//        connectProperties.withClientId("client123android");
+//        builder.withConnectProperties(connectProperties);
+//
+//        client = builder.build();
+//        builder.close();
+//        client.start();
+//        PublishPacket.PublishPacketBuilder publishBuilder = new PublishPacket.PublishPacketBuilder();
+//        publishBuilder.withTopic("helloworld").withQOS(QOS.AT_LEAST_ONCE);
+//        publishBuilder.withPayload(("{\"test\":\"test\"}").getBytes());
+//        CompletableFuture<PublishResult> published = client.publish(publishBuilder.build());
+//
+//    }
     private void init() {
         toLeftLeft = findViewById(R.id.toLeftLeft);
         toRight = findViewById(R.id.toRight);
@@ -231,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                             MyApp.getMyApp().getUhfMangerImpl().powerOn();
                             MyApp.getMyApp().getUhfMangerImpl().getRFIDProtocolStandard();
                             MyApp.getMyApp().getUhfMangerImpl().startInventoryTag();
-                            MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(MyApp.currentInvtDataType,0,0,0);
+                            MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(MyApp.currentInvtDataType,0,0,0);//MyApp.currentInvtDataType
                             GetRFIDThread.getInstance().setIfPostMsg(true);
                         }
                     }
@@ -377,6 +427,47 @@ public class MainActivity extends AppCompatActivity {
             MyApp.powerSize = MMKV.defaultMMKV().decodeInt("setPower", 33);
         }
     }
+    private void loadAssets(){
+
+
+        // Sample asset files in the assets folder
+        List<String> resourceNames = new ArrayList<>();
+        resourceNames.add("endpoint.txt");
+        resourceNames.add("privatekey.pem");
+        resourceNames.add("certificate.pem");
+        resourceNames.add("topic.txt");
+        resourceNames.add("message.txt");
+
+        // Copy to cache and store file locations for file assets and contents for .txt assets
+        for (String resourceName : resourceNames) {
+            try {
+                try (InputStream res = getResources().getAssets().open(resourceName)) {
+                    // .txt files will store contents of the file
+
+                    if(resourceName.endsWith(".txt")){
+                        byte[] bytes = new byte[res.available()];
+                        res.read(bytes);
+                        String contents = new String(bytes).trim();
+                        resourceMap.put(resourceName, contents);
+
+                    } else {
+                        // non .txt file types will copy to cache and store accessible file location
+                        String cachedName = getExternalCacheDir() + "/" + resourceName;
+                        try (OutputStream cachedRes = new FileOutputStream(cachedName)) {
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = res.read(buffer)) != -1) {
+                                cachedRes.write(buffer, 0, length);
+                            }
+                        }
+                        resourceMap.put(resourceName, cachedName);
+                    }
+                }
+            } catch (IOException e) {
+                MLog.e("'" + resourceName + "' file not found\n");
+            }
+        }
+    }
 
     private void judgeModuleTypeAndRefreshUI(final boolean isShowSearchPage) {
         runOnUiThread(new Runnable() {
@@ -453,7 +544,8 @@ public class MainActivity extends AppCompatActivity {
             //主界面
             // Main screen
             case 0:
-                currentFragment = mLeftLeftFragment = (mLeftLeftFragment == null ? new LeftLeftFragment() : mLeftLeftFragment);
+                currentFragment = mLeftLeftFragment = (mLeftLeftFragment == null ? new LeftLeftFragment(resourceMap) : mLeftLeftFragment);
+                //currentFragment.setResourceMap(resourceMap);
                 break;
             //主界面
             // Main screen

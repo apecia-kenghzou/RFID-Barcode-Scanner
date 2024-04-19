@@ -1,9 +1,15 @@
 package com.uhf.uhfdemo;
-import static com.uhf.uhfdemo.MyApp.ifRMModule;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import software.amazon.awssdk.crt.mqtt5.Mqtt5Client;
+import software.amazon.awssdk.crt.mqtt5.PublishResult;
+import software.amazon.awssdk.crt.mqtt5.QOS;
+import software.amazon.awssdk.crt.mqtt5.packets.ConnectPacket;
+import software.amazon.awssdk.crt.mqtt5.packets.PublishPacket;
+import software.amazon.awssdk.iot.AwsIotMqtt5ClientBuilder;
+
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,10 +26,9 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.os.Handler;
 
 
-import com.google.gson.GsonBuilder;
+import com.tencent.mmkv.MMKV;
 import com.uhf.base.UHFManager;
 import com.uhf.base.UHFModuleType;
 import com.uhf.event.BackResult;
@@ -31,42 +36,69 @@ import com.uhf.event.BaseFragment;
 import com.uhf.event.GetRFIDThread;
 import com.uhf.event.OnKeyListener;
 import com.uhf.util.MLog;
-import com.google.gson.Gson;
 import com.example.iscandemo.iScanInterface;
 import android.os.IScanListener;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.w3c.dom.Text;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.eclipse.paho.android.service.MqttAndroidClient;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.SocketImplFactory;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Objects;
 import java.time.LocalDate;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import com.uhf.util.HttpRequestTask;
+import com.uhf.util.MqttHandler;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
+
 public class LeftLeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener,IScanListener{
     private String[] tagNumber;
     private String readNumber;
     private String takeTime;
-
     private String epc_to_store;
     private TextView tag,TextProcess1,TextProcess2,TextProcess3,TextProcess4;
 
     private CheckBox checkBox1a,checkBox2,checkBox3,checkBox4;
+    private Map<String, String> resourceMap;
+
+
     private Integer mode =0;
+    private Integer count =0;
     // mode 0 == barcode
     // mode 1 == api
     // mode 2 == rfid
     private Button resetBtn;
     private iScanInterface miScanInterface;
+
+
+
+
     UHFManager uhfmanager = UHFManager.getUHFImplSigleInstance(UHFModuleType.SLR_MODULE);
 
     PassengerFlightInfo PFI = new PassengerFlightInfo(null,null);
@@ -77,9 +109,38 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     }
 
-    private Handler handler = new Handler();
 
+    //private Handler handler = new Handler();
+    public LeftLeftFragment(Map<String, String> resourceMap) {
+        this.resourceMap = resourceMap;
+    }
+    public void test(Map<String, String> resrc,String tid,String flight,String pnr){
+
+        String status = "Check-in";
+        String loc = "KLIA - Check-in";
+        long time = System.currentTimeMillis();
+        String requestBody = "{\"tid\": \""+tid+"\",\"flight_no\":\""+flight+"\",\"pnr\":\""+pnr+"\",\"status\":\""+status+"\",\"location\":\""+loc+"\",\"reader\":\"handheld001\",\"timestamp\":"+time+"}";
+
+        Mqtt5Client client;
+        AwsIotMqtt5ClientBuilder builder = AwsIotMqtt5ClientBuilder.newDirectMqttBuilderWithMtlsFromPath(
+                resrc.get("endpoint.txt"), resrc.get("certificate.pem"), resrc.get("privatekey.pem"));
+        ConnectPacket.ConnectPacketBuilder connectProperties = new ConnectPacket.ConnectPacketBuilder();
+        connectProperties.withClientId("client123android");
+        builder.withConnectProperties(connectProperties);
+
+        client = builder.build();
+        builder.close();
+        client.start();
+        PublishPacket.PublishPacketBuilder publishBuilder = new PublishPacket.PublishPacketBuilder();
+        publishBuilder.withTopic("iforage/reader001/rfid/uplink/data").withQOS(QOS.AT_LEAST_ONCE);
+        publishBuilder.withPayload((requestBody).getBytes());
+        CompletableFuture<PublishResult> published = client.publish(publishBuilder.build());
+
+    }
     public void startOrStopRFID() {
+        //
+        MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(1,0,0,0);//MyApp.currentInvtDataType
+
         boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
 
         int Temp = 0;
@@ -104,8 +165,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             long b = System.currentTimeMillis();
 
             Boolean i = MyApp.getMyApp().getUhfMangerImpl().stopInventory();
-            mode=0;
-            checkBox3.setChecked(true);
+
            // reducingPowerDissipation(false);
            // cancelVolumeTimer();
             //releaseWakeLock();
@@ -156,16 +216,20 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             public void onClick(View view) {
                 mode = 0;
                 updateUI(4,true);
-                new HttpRequestTask().execute();
+
+
+               // new HttpRequestTask().execute();
             }
         });
         //registerForContextMenu(view);
         Context context = requireContext();
+
         miScanInterface = new iScanInterface(context);
         miScanInterface.registerScan(this);
         miScanInterface.setOCREnable(true,0);
         miScanInterface.setAimLightMode(0);
-        MyApp.getMyApp().getUhfMangerImpl().powerSet(6);
+        //MyApp.getMyApp().getUhfMangerImpl().powerSet(6);
+
         miScanInterface.setOutputMode(1);
 //        miScanInterface.setBarcodeEnable(0,true);
 //
@@ -189,21 +253,39 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             MLog.e("powerOn failed\n");
         }
         SystemClock. sleep(3000);
-        uhfmanager.readTagModeSet(0,0,0,0); //Set the returned data type
-        uhfmanager.slrInventoryModeSet(3); //Set inventory mod
-        uhfmanager.startInventoryTag(); //Start inventory
-        boolean ifInventory = true;
-        boolean finalIfInventory = ifInventory;
-        new Thread(new Runnable() { //Start the thread to receive tag data
-            @Override
-            public void run() {
-                while(finalIfInventory)
-                    tagNumber = uhfmanager. readTagFromBuffer();
-            }
-        }).start();
-        uhfmanager.stopInventory();//stop inventory
-        ifInventory = false;
-        MLog.e(Arrays.toString(tagNumber));
+        uhfmanager.powerSet(MMKV.defaultMMKV().decodeInt("power", 6));
+        //uhfmanager.readTagModeSet(0,0,0,0); //Set the returned data type
+        //uhfmanager.slrInventoryModeSet(3); //Set inventory mod
+        //uhfmanager.startInventoryTag(); //Start inventory
+//        boolean ifInventory = true;
+//        boolean finalIfInventory = ifInventory;
+//        new Thread(new Runnable() { //Start the thread to receive tag data
+//            @Override
+//            public void run() {
+//                while(finalIfInventory)
+//                    tagNumber = uhfmanager. readTagFromBuffer();
+//            }
+//        }).start();
+//        uhfmanager.stopInventory();//stop inventory
+//        ifInventory = false;
+//        MLog.e(Arrays.toString(tagNumber));
+
+//        try{
+//
+//            InputStream caCrtFile = context.getResources().openRawResource(R.raw.ca);
+//            InputStream crtFile = context.getResources().openRawResource(R.raw.certificate);
+//            InputStream keyFile = context.getResources().openRawResource(R.raw.pkey);
+//
+//            SocketImplFactory ssl = getSocketFactory(caCrtFile, crtFile, keyFile, "");
+//            mqttHandler = new MqttHandler();
+//
+//            MLog.e("api: connecting mqtt");
+//            mqttHandler.connect(BROKER_URL,CLIENT_ID,ssl);
+//            // mqttHandler.publish("helloworld","test");
+//        }catch(Exception e){
+//            MLog.e("api: "+e);
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -232,12 +314,28 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 
     @Override
     public void postResult(String[] tagData) {
-        MLog.e("idata","Reading tag Data");
+        MLog.e("uhf Reading tag Data");
         String tid = tagData[0];//获取TID
-        String epc = tagData[1]; //拿到EPC
-        MLog.e("idata","tid = " + tid + " epc = " + epc);
-        tag.setText(epc);
-        updateUI(2,true);
+        String result_epc = tagData[1]; //拿到EPC
+        MLog.e("uhf tid = " + tid + " epc = " + result_epc);
+//        tag.setText(epc);
+        MLog.e("uhf "+result_epc);
+        count = (result_epc.equalsIgnoreCase(epc_to_store) ? count+1 : count);
+        String showText =(result_epc.equalsIgnoreCase(epc_to_store) ? getString(R.string.write_success)+" count:"+count : getString(R.string.write_failed));
+        TextProcess2.setText(showText);
+        if (result_epc.equalsIgnoreCase(epc_to_store) ) {
+
+            updateUI(1, true);
+            String pnr_flight = hexToString(epc_to_store);
+            String pnr = pnr_flight.substring(0, 6); // Substring from index 0 to 5 (inclusive)
+            String flight = pnr_flight.substring(6);
+            test(resourceMap,tid,flight,pnr);
+            //new HttpRequestTask(getContext()).execute(tid,flight,pnr);
+
+           mode=1;
+           startOrStopRFID();
+        }
+       // updateUI(2,true);
       //  MLog.e(Arrays.toString(tagData));
     }
 
@@ -262,7 +360,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 //        }
         //MLog.e(Arrays.toString(tagNumber));
         if(mode ==0) {
-            //MLog.e("barcode scanning");
+            MLog.e("barcode scanning");
             miScanInterface.scan_start();
 
 //        }else if(mode ==1){
@@ -288,7 +386,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
 //            updateUI(1,true);
 //        }
         }else if(mode ==1){
-            MLog.e("idata","rfid scanning");
+            MLog.e("uhf : rfid scanning");
             String pnr = PFI.getPnr();
             String flight = PFI.getFlightNo();
 
@@ -299,45 +397,61 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             //String showText =(status ? getString(R.string.write_success) : getString(R.string.write_failed));
 
 
-            if(status){
-                MLog.e("idata","reading RFID");
+            if(status) {
+                MLog.e( "uhf : reading RFID");
+                mode = 2;
                 //String result = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
-               // String result_tid = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
-
-                String result_epc = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
+                // String result_tid = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 2, 0, 6);
+                //String result_epc = MyApp.getMyApp().getUhfMangerImpl().readTag("000000", 0, 0, 0, "0", 1, 2, 6);
                 //MLog.e("idata",result_tid);
-                MLog.e("idata",result_epc);
-
-                String showText =(result_epc.equalsIgnoreCase(epc_to_store) ? getString(R.string.write_success) : getString(R.string.write_failed));
-                TextProcess2.setText(showText);
-                if (result_epc.equalsIgnoreCase(epc_to_store) ) {
-
-                    updateUI(1, true);
-                    mode=2;
-                }
+                startOrStopRFID();
+//                MLog.e("idata",result_epc);
+//                count = (result_epc.equalsIgnoreCase(epc_to_store) ? count+1 : count);
+//                String showText =(result_epc.equalsIgnoreCase(epc_to_store) ? getString(R.string.write_success)+" count:"+count : getString(R.string.write_failed));
+//                TextProcess2.setText(showText);
+//                if (result_epc.equalsIgnoreCase(epc_to_store) ) {
+//
+//                    updateUI(1, true);
+//                    new HttpRequestTask(getContext()).execute(result_epc);
+//
+//                    //mode=2;
+//                }
                 //mode=3;
-            }else{
-                mode =1;
             }
+        }else if(mode ==2) {
 
-            //startOrStopRFID();
+                MLog.e("uhf : STOP READ RFID");
+                mode=1;
+                startOrStopRFID();
 
-            //MLog.e(Arrays.toString(tagNumber));
-           // mode =0;
         }else{
             mode=0;
+            count=0;
             updateUI(4,true);
         }
 
     }
-
+    public static String hexToString(String hexString) {
+        StringBuilder result = new StringBuilder();
+        // Iterate over each pair of hexadecimal characters
+        for (int i = 0; i < hexString.length(); i += 2) {
+            // Convert each pair to its ASCII representation
+            String hexPair = hexString.substring(i, i + 2);
+            int decimalValue = Integer.parseInt(hexPair, 16);
+            // Append the character to the result
+            result.append((char) decimalValue);
+        }
+        return result.toString();
+    }
     @Override
     public void onKeyUp(int keyCode, KeyEvent event) {
-
+        //startOrStopRFID();
         //miScanInterface.scan_stop();
     }
     @Override
     public void onScanResults(String s, int i, long l, long l1, String s1) {
+        mode =1;
+        updateUI(0,true);
         Log.d("idata", "data = " + s);
         Log.d("idata", "type = " + i);
         Log.d("idata", "scantime = " + l);
@@ -359,7 +473,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         MLog.e(date);
         String [] name_part = ss_name.split("/");
 
-        updateUI(0,true);
+
         MLog.e("PNR:"+ss_pnr);
         String origin=ss_flight.substring(0,3);
         String dest = ss_flight.substring(3,6);
@@ -373,7 +487,6 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
         PFI.renit(ss_pnr,name_part[0],name_part[1],flight_no,date,origin,dest);
         String showtextProcess2 = "PNR :"+ss_pnr + "\nFlight No:" + flight_no;
         TextProcess1.setText(showtextProcess2);
-        mode =1;
 
 
      //   Log.d("idata", "changing my checkbox to true = " + checkBox1a.isChecked());

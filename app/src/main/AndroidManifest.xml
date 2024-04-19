@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-
+        <service android:name="org.eclipse.paho.android.service.MqttService" />
         <receiver
             android:name=".MyReceiver"
             android:enabled="true"
