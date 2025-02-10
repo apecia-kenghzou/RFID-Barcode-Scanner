@@ -5,7 +5,53 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".LeftFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Flight No"/>
+
+        <EditText
+            android:id="@+id/flight_no_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:enabled="true"
+            android:inputType="text"
+            android:maxLength="6" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <RadioGroup
+            android:id="@+id/show_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/show_matched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Show Matched"
+                android:checked="true"
+                />
+
+            <RadioButton
+                android:id="@+id/show_unmatched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Show Unmatched"
+                />
+        </RadioGroup>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

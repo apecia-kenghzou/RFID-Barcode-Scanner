@@ -114,9 +114,9 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
     public LeftLeftFragment(Map<String, String> resourceMap) {
         this.resourceMap = resourceMap;
     }
-    public void test(Map<String, String> resrc,String tid,String flight,String pnr){
+    public void MqttPub(Map<String, String> resrc,String tid,String flight,String pnr){
 
-        String status = "Check-in";
+        String status = "check-in";
         String loc = "KLIA - Check-in";
         long time = System.currentTimeMillis();
         String requestBody = "{\"tid\": \""+tid+"\",\"flight_no\":\""+flight+"\",\"pnr\":\""+pnr+"\",\"status\":\""+status+"\",\"location\":\""+loc+"\",\"reader\":\"handheld001\",\"timestamp\":"+time+"}";
@@ -158,20 +158,20 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             long startTime = System.currentTimeMillis() - tempTime;
             long a = System.currentTimeMillis();
 
-           // reducingPowerDissipation(true);
-           // setVolumeTimer();
+            // reducingPowerDissipation(true);
+            // setVolumeTimer();
             //acquireWakeLock();
         } else {
             long b = System.currentTimeMillis();
 
             Boolean i = MyApp.getMyApp().getUhfMangerImpl().stopInventory();
 
-           // reducingPowerDissipation(false);
-           // cancelVolumeTimer();
+            // reducingPowerDissipation(false);
+            // cancelVolumeTimer();
             //releaseWakeLock();
         }
         GetRFIDThread.getInstance().setIfPostMsg(flag);
-       // read_RFID.setText(flag ? R.string.stop_rfid : R.string.read_rfid);
+        // read_RFID.setText(flag ? R.string.stop_rfid : R.string.read_rfid);
 
 
     }
@@ -329,7 +329,7 @@ public class LeftLeftFragment extends BaseFragment implements View.OnClickListen
             String pnr_flight = hexToString(epc_to_store);
             String pnr = pnr_flight.substring(0, 6); // Substring from index 0 to 5 (inclusive)
             String flight = pnr_flight.substring(6);
-            test(resourceMap,tid,flight,pnr);
+            MqttPub(resourceMap,tid,flight,pnr);
             //new HttpRequestTask(getContext()).execute(tid,flight,pnr);
 
            mode=1;

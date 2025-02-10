@@ -234,7 +234,7 @@ public class SearchFragment extends BaseFragment implements View.OnClickListener
             MLog.e(currentFilterText);
             String uppcaseFilter = currentFilterText.toUpperCase();
             if(enable_filter.isChecked()) {
-                if (uppcaseFilter.equals(pnr)) {
+                if (uppcaseFilter.equals(flight)) {
 
                     final int[] progressAndRssi = convertRssiToPrgress(tagData[2]);
                     Log.e(TAG, "postResult: " + tagData[2]);

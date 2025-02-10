@@ -148,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
 //        CompletableFuture<PublishResult> published = client.publish(publishBuilder.build());
 //
 //    }
+
     private void init() {
         toLeftLeft = findViewById(R.id.toLeftLeft);
         toRight = findViewById(R.id.toRight);
@@ -161,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 // 初始化开启把枪和串口配置(50把枪设备)
                 // Initialisation of the device and serial port configuration （only 50 equipment）
+                MLog.e("Status" +MyApp.getMyApp());
                 if (MyApp.getMyApp().getUhfMangerImpl().getDeviceInfo().isIfHaveTrigger()) {
                     ifPowerOn = MyApp.getMyApp().getUhfMangerImpl().powerOn();
                     MLog.e("powerOn = " + ifPowerOn);
@@ -543,15 +545,15 @@ public class MainActivity extends AppCompatActivity {
         switch (tabPage) {
             //主界面
             // Main screen
-            case 0:
-                currentFragment = mLeftLeftFragment = (mLeftLeftFragment == null ? new LeftLeftFragment(resourceMap) : mLeftLeftFragment);
+            //case 0:
+            //   currentFragment = mLeftLeftFragment = (mLeftLeftFragment == null ? new LeftLeftFragment(resourceMap) : mLeftLeftFragment);
                 //currentFragment.setResourceMap(resourceMap);
-                break;
+            //    break;
             //主界面
             // Main screen
-            //case 2:
-            //    currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment() : mLeftFragment);
-            //    break;
+            case 0:
+               currentFragment = mLeftFragment = (mLeftFragment == null ? new LeftFragment(resourceMap) : mLeftFragment);
+                break;
             //设置界面
             // Setting screen    
             case 1:
@@ -580,6 +582,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 setCurrentPage(i);
+
                 toLeftLeft.setImageResource(pageId[i] == R.id.toLeftLeft ? R.drawable.main_click : R.drawable.main_noclick);
                 toRight.setImageResource(pageId[i] == R.id.toRight ? R.drawable.set_click : R.drawable.set_noclick);
                 searchTag.setImageResource(pageId[i] == R.id.searchTag ? R.drawable.search_clcik : R.drawable.search_noclcik);

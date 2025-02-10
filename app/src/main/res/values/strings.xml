@@ -48,6 +48,8 @@
 
     <string name="sn_code">SN</string>
     <string name="epc_code">EPC</string>
+    <string name="flight_code">Flight</string>
+    <string name="pnr_code">PNR</string>
     <string name="tid_code">TID</string>
     <string name="usr_code">USR</string>
     <string name="rfu_code">RFU</string>

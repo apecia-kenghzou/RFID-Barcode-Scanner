@@ -56,7 +56,7 @@
         <item>USR</item>
     </string-array>
     <string-array name="search_filter">
-        <item>PNR</item>
+        <item>Flight No.</item>
     </string-array>
     <string-array name="rw_filter">
         <item>RFU</item>

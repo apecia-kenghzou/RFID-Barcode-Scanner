@@ -21,14 +21,15 @@ public class DataAdapter extends BaseAdapter {
 
     private Context con;
     private Map<String, Integer> realDataMap;
-    private List<String> realKeyList, tidList, usrList, rfuList,rssiList,gtinList;
+    private List<String> realKeyList, tidList,epcList, usrList, rfuList,rssiList,gtinList;
     private int mode = 0;
 
-    public DataAdapter(Context con, Map<String, Integer> realDataMap, List<String> realKeyList, List<String> tidList, List<String> usrList, List<String> rfuList, List<String> rssiList, List<String> gtinList) {
+    public DataAdapter(Context con, Map<String, Integer> realDataMap, List<String> realKeyList, List<String> tidList,List<String> epcList, List<String> usrList, List<String> rfuList, List<String> rssiList, List<String> gtinList) {
         this.con = con;
         this.realDataMap = realDataMap;
         this.realKeyList = realKeyList;
         this.tidList = tidList;
+        this.epcList = epcList;
         this.usrList = usrList;
         this.rfuList = rfuList;
         this.rssiList = rssiList;
@@ -57,10 +58,14 @@ public class DataAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View v, ViewGroup parent) {
         ViewHolder vh;
+
         if (v == null) {
             v = LayoutInflater.from(con).inflate(R.layout.item, null);
             vh = new ViewHolder();
-            vh.epc = v.findViewById(R.id.epc);
+            vh.flight = v.findViewById(R.id.flight);
+            vh.pnr = v.findViewById(R.id.pnr);
+
+          //  vh.epc = v.findViewById(R.id.epc);
             vh.tid = v.findViewById(R.id.tid);
             vh.usr = v.findViewById(R.id.usr);
             vh.rfu = v.findViewById(R.id.rfu);
@@ -75,8 +80,10 @@ public class DataAdapter extends BaseAdapter {
         } else {
             vh = (ViewHolder) v.getTag();
         }
-        vh.epc.setVisibility(mode == 1 ? View.GONE : View.VISIBLE);
-        vh.tid.setVisibility(mode == 0 || mode ==3 || mode ==6 ? View.GONE : View.VISIBLE);
+        vh.flight.setVisibility(mode == 1 ? View.GONE : View.VISIBLE);
+        vh.pnr.setVisibility(mode == 1 ? View.GONE : View.VISIBLE);
+      //  vh.epc.setVisibility(mode == 1 ? View.GONE : View.VISIBLE);
+       // vh.tid.setVisibility(mode == 0 || mode ==3 || mode ==6 ? View.GONE : View.VISIBLE);
         vh.usr.setVisibility(mode == 3 || mode == 4 ? View.VISIBLE : View.GONE);
         vh.rfu.setVisibility(mode == 5 || mode == 6 ? View.VISIBLE : View.GONE);
         vh.epc_tid_divd_Line.setVisibility(mode == 0 || mode ==3 || mode ==6 ? View.GONE : View.VISIBLE);
@@ -88,21 +95,26 @@ public class DataAdapter extends BaseAdapter {
         String epc, tid, usr, rfu,rssi,gtin;
         String data = realKeyList.get(position);
         String data1 = tidList.get(position);
+        String dataEpc = epcList.get(position);
         String data2 = usrList.get(position);
         String data3 = rfuList.get(position);
         String data4 = rssiList.get(position);
         String data5 = gtinList.get(position);
         //MLog.e("usr = " + data2 + " rfu = " + data3);
 
-        epc = ifOnlyEPC ? data : data1;
-        tid = ifOnlyEPC ? data1 : data;
+        epc = dataEpc;
+        tid = data;
         usr = data2;
         rfu = data3;
         rssi = data4;
         gtin = data5;
-        String readNumber = String.valueOf(realDataMap.get(ifOnlyEPC ? epc : tid));
+        String readNumber = String.valueOf(realDataMap.get(tid)); //realDataMap.get(ifOnlyEPC ? tid : epc)
+        String pnr = epc.substring(0, 6); // Substring from index 0 to 5 (inclusive)
+        String flight = epc.substring(6);
         vh.sn.setText((position + 1) + "");
-        vh.epc.setText(epc);
+        vh.flight.setText(flight);
+        vh.pnr.setText(pnr);
+        //vh.epc.setText(epc);
         vh.tid.setText(tid);
         vh.usr.setText(usr);
         vh.rfu.setText(rfu);
@@ -114,7 +126,7 @@ public class DataAdapter extends BaseAdapter {
 
 
     private class ViewHolder {
-        private TextView sn, epc, tid, count, usr, rfu, rssi, gtin;
+        private TextView sn,flight,pnr, tid, count, usr, rfu, rssi, gtin;
         private View epc_tid_divd_Line, epc_usr_divd_Line, epc_rfu_divd_Line;
     }
 }

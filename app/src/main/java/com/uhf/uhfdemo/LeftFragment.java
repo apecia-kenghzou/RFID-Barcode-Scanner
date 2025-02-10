@@ -23,6 +23,8 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -50,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 import static com.uhf.uhfdemo.MyApp.ifASCII;
 import static com.uhf.uhfdemo.MyApp.ifRMModule;
@@ -58,15 +61,22 @@ import static com.uhf.uhfdemo.MyApp.ifSupportR2000Fun;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import software.amazon.awssdk.crt.mqtt5.Mqtt5Client;
+import software.amazon.awssdk.crt.mqtt5.PublishResult;
+import software.amazon.awssdk.crt.mqtt5.QOS;
+import software.amazon.awssdk.crt.mqtt5.packets.ConnectPacket;
+import software.amazon.awssdk.crt.mqtt5.packets.PublishPacket;
+import software.amazon.awssdk.iot.AwsIotMqtt5ClientBuilder;
 
 
-public class LeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener,OnKeyListener{
+public class LeftFragment extends BaseFragment implements View.OnClickListener, BackResult, AdapterView.OnItemSelectedListener, OnKeyListener, RadioGroup.OnCheckedChangeListener {
 
     private LinearLayout invDataSet;
     private TextView read_RFID;
+    public  EditText flightNoFilter;
     private TextView tagNumbers, readNumbers, useTimes, epcShow, tidShow, usrShow, rfuShow, tempShow,export;
     private Spinner invtDataTypeSet;
-    private View epc_tid_show_divd_Line, epc_usr_show_divd_Line, epc_rfu_show_divd_Line;
+    private View epc_tid_show_divd_Line, flight_pnr_show_divd_Line, epc_usr_show_divd_Line, epc_rfu_show_divd_Line;
     private String tagNumber, readNumber, takeTime;
 
     private long startTime, usTim, pauseTime;
@@ -74,17 +84,28 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
 
     private Button btn_power;
 
+
     private EditText et_power;
 
-
+    private RadioGroup show_group;
+    private RadioButton match, unmatch;
     private Handler handler = new Handler();
+    private Map<String, String> resourceMap;
 
+    public LeftFragment(Map<String, String> resourceMap) {
+        this.resourceMap = resourceMap;
+    }
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         tagNumber = getString(R.string.tag_number) + ":";
         readNumber = getString(R.string.read_number) + ":";
         takeTime = getString(R.string.user_time) + ":";
-        return inflater.inflate(R.layout.fragment_left, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_left, container, false);
+
+        // Initialize views within the fragment's layout
+        flightNoFilter = view.findViewById(R.id.flight_no_filter);
+        return view;
     }
 
     @Override
@@ -96,6 +117,9 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
     private void initView(final View v) {
         btn_power = v.findViewById(R.id.btn_power);
         et_power = v.findViewById(R.id.et_power);
+
+        flightNoFilter = v.findViewById(R.id.flight_no_filter);
+        // Set the text of the EditText
 
         btn_power.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,7 +133,9 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         // Clear data
         v.findViewById(R.id.clear_Data).setOnClickListener(this);
         ListView specific_Msg = v.findViewById(R.id.specific_Msg);
-
+        match = v.findViewById(R.id.show_matched);
+        unmatch = v.findViewById(R.id.show_unmatched);
+        show_group = v.findViewById(R.id.show_group);
         tagNumbers = v.findViewById(R.id.tagNumbers);
         readNumbers = v.findViewById(R.id.readNumbers);
         useTimes = v.findViewById(R.id.useTimes);
@@ -122,23 +148,32 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         usrShow = v.findViewById(R.id.usrShow);
         rfuShow = v.findViewById(R.id.rfuShow);
         tempShow = v.findViewById(R.id.temp);
+        flight_pnr_show_divd_Line = v.findViewById(R.id.flight_pnr_show_divd_Line);
         epc_tid_show_divd_Line = v.findViewById(R.id.epc_tid_show_divd_Line);
         epc_usr_show_divd_Line = v.findViewById(R.id.epc_usr_show_divd_Line);
         epc_rfu_show_divd_Line = v.findViewById(R.id.epc_rfu_show_divd_Line);
         invDataSet = v.findViewById(R.id.invDataSet);
         invtDataTypeSet = v.findViewById(R.id.invModSet);
+
         refreshUI();
         invtDataTypeSet.setOnItemSelectedListener(this);
+        MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(1, 0, 6, 0);
+
+        int test = MyApp.getMyApp().getUhfMangerImpl().readTagModeGet();
+        Log.e("KENG HZOU", " SHOULD BE ALREADY SET" +   test);
         if (MyApp.currentInvtDataType > -1) {
             SystemClock.sleep(1000);
             refreshTagDataTypeShow(MyApp.currentInvtDataType);
             invtDataTypeSet.setSelection(MyApp.currentInvtDataType);
+            Log.e("KENG HZOU", " SHOULD BE ALREADY SET" +   MyApp.currentInvtDataType);
+
+
         }
 
         read_RFID.setOnClickListener(this);
         read_RFID.setText(GetRFIDThread.getInstance().isIfPostMsg() ? R.string.stop_rfid : R.string.read_rfid);
 
-        mListAdapter = new DataAdapter(getActivity(), realDataMap, realKeyList, tidList, usrList, rfuList, rssiList, gtinList);
+        mListAdapter = new DataAdapter(getActivity(), realDataMap, realKeyList, tidList,epcList, usrList, rfuList, rssiList, gtinList);
         specific_Msg.setAdapter(mListAdapter);
         GetRFIDThread.getInstance().setBackResult(this);
         if (MyApp.protocolType == 1) {
@@ -146,7 +181,11 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         }else if (MyApp.protocolType == 2) {
             epcShow.setText(getString(R.string.code_area));
         }
-
+        MyApp.currentInvtDataType = 2;
+        mListAdapter.setMode(2);
+        refreshTagDataTypeShow(2);
+        MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(1, 0, 6, 0);
+        show_group.setOnCheckedChangeListener(this);
     }
 
     @Override
@@ -158,15 +197,18 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
             invDataSet.setVisibility(View.GONE);
         }else if (ifRMModule) {
             invDataSet.setVisibility(View.GONE);
-            invtDataTypeSet.setAdapter(new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
+            invtDataTypeSet.setAdapter(new ArrayAdapter<>(requireActivity(),
                     android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.readTagType_7100)));
             if (MyApp.protocolType == 2) {
                 invDataSet.setVisibility(View.GONE);
-                MyApp.currentInvtDataType = 0;
+                MyApp.currentInvtDataType = 2;
             }
         }else if (UHFModuleType.SLR_MODULE == UHFManager.getType()) {
-            invtDataTypeSet.setAdapter(new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
+            Log.e("KENG HZOU", "AM I HERE");
+            Log.e("KENG HZOU", "AM I HERE" +   MyApp.currentInvtDataType);
+            invtDataTypeSet.setAdapter(new ArrayAdapter<>(requireActivity(),
                     android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.readTagType_7100)));
+            invDataSet.setVisibility(View.INVISIBLE);
         }else {
             invDataSet.setVisibility(View.VISIBLE);
         }
@@ -207,6 +249,7 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         realDataMap.clear();
         realKeyList.clear();
         tidList.clear();
+        epcList.clear();
         usrList.clear();
         rfuList.clear();
         rssiList.clear();
@@ -319,13 +362,52 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
     private long postDataTime = 0;
 
     int Temp = 0;
+    public static boolean isAlphaNumeric(String str) {
+        // Regular expression to match alphanumeric characters
+        String regex = "^[a-zA-Z0-9]+$";
+
+        // Return true if the string matches the regex, false otherwise
+        return str.matches(regex);
+    }
+
+    public void MqttPub(Map<String, String> resrc,String tid,String flight,String pnr){
+
+        String status = "loaded";
+        String loc = "KLIA - Bag Loader";
+        long time = System.currentTimeMillis();
+        String requestBody = "{\"tid\": \""+tid+"\",\"flight_no\":\""+flight+"\",\"pnr\":\""+pnr+"\",\"status\":\""+status+"\",\"location\":\""+loc+"\",\"reader\":\"handheld001\",\"timestamp\":"+time+"}";
+
+        Mqtt5Client client;
+        AwsIotMqtt5ClientBuilder builder = AwsIotMqtt5ClientBuilder.newDirectMqttBuilderWithMtlsFromPath(
+                resrc.get("endpoint.txt"), resrc.get("certificate.pem"), resrc.get("privatekey.pem"));
+        ConnectPacket.ConnectPacketBuilder connectProperties = new ConnectPacket.ConnectPacketBuilder();
+        connectProperties.withClientId("client123android");
+        builder.withConnectProperties(connectProperties);
+
+        client = builder.build();
+        builder.close();
+        client.start();
+        PublishPacket.PublishPacketBuilder publishBuilder = new PublishPacket.PublishPacketBuilder();
+        publishBuilder.withTopic("iforage/reader001/rfid/uplink/data").withQOS(QOS.AT_LEAST_ONCE);
+        publishBuilder.withPayload((requestBody).getBytes());
+        CompletableFuture<PublishResult> published = client.publish(publishBuilder.build());
+
+    }
     @Override
     public void postResult(String[] tagData) {
+
+        Log.e("KENG","test "+ Arrays.toString(tagData));
         //labelNum++;
         //Log.e("TAG", "postResult: " + labelNum);
         //Log.e("TAG", "postResult: "+ Arrays.toString(tagData));
         postDataTime = SystemClock.elapsedRealtime();
         ifHaveTag = true;
+
+       // String epc = tagData[1];
+
+    //    String pnr_flight = hexToString(epc);
+     //   String pnr = pnr_flight.substring(0, 6); // Substring from index 0 to 5 (inclusive)
+      //  String flight = pnr_flight.substring(6);
         //获取TID
         // get TID
         String tid = tagData[0];
@@ -351,38 +433,63 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
             rfu =tagData[0];
         }
         String epc = tagData[1];
-        if (ifASCII) {
-            tid = convertHexToString(tid);
-            epc = convertHexToString(epc);
-            usr = convertHexToString(usr);
-            rfu = convertHexToString(rfu);
-        }
+        epc = convertHexToString(epc);
+        if(epc.length() == 12){
+            String filter = flightNoFilter.getText().toString();
+            String pnr = epc.substring(0, 6);
+            String flight = epc.substring(6);
+            Log.e("KENG",""+filter+" flight:"+flight);
+            if(TextUtils.isEmpty(filter)){
 
-        //对UM模组传上来的RSSI进行操作
-        if (UHFManager.getType() == UHFModuleType.UM_MODULE || UHFManager.getType() == UHFModuleType.RM_MODULE) {
-            int Hb = Integer.parseInt(rssi.substring(0, 2), 16);
-            int Lb = Integer.parseInt(rssi.substring(2, 4), 16);
-            int rssi1 = ((Hb - 256 + 1) * 256 + (Lb - 256)) / 10;
-            rssi = String.valueOf(rssi1);
-        }
-        //MLog.e("tid = " + tid + " epc = " + epc +" usr = " + usr + " rfu = " + rfu);
-        //showDialog(epc);
-        String filterData = MyApp.currentInvtDataType == 1 || MyApp.currentInvtDataType == 2 || MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5 ? tid : epc;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // This code will run on the UI thread
+                        flightNoFilter.setText(flight);
+                    }
+                });
+            }
+            boolean isMatchChecked = match.isChecked();
+            if((isMatchChecked&& filter.equals(flight))||(!isMatchChecked&& !filter.equals(flight))){
+                if( isAlphaNumeric(epc)) {
+                    if (ifASCII) {
+                        tid = convertHexToString(tid);
+                        epc = convertHexToString(epc);
+                        usr = convertHexToString(usr);
+                        rfu = convertHexToString(rfu);
+                    }
+
+                    //对UM模组传上来的RSSI进行操作
+                    if (UHFManager.getType() == UHFModuleType.UM_MODULE || UHFManager.getType() == UHFModuleType.RM_MODULE) {
+                        int Hb = Integer.parseInt(rssi.substring(0, 2), 16);
+                        int Lb = Integer.parseInt(rssi.substring(2, 4), 16);
+                        int rssi1 = ((Hb - 256 + 1) * 256 + (Lb - 256)) / 10;
+                        rssi = String.valueOf(rssi1);
+                    }
+                    //MLog.e("tid = " + tid + " epc = " + epc +" usr = " + usr + " rfu = " + rfu);
+                    //showDialog(epc);
+                    String filterData = MyApp.currentInvtDataType == 1 || MyApp.currentInvtDataType == 2 || MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5 ? tid : epc;
 //        if (!TextUtils.isEmpty(tid) && !customizationList.contains(tid) && (MyApp.currentInvtDataType == 1 || MyApp.currentInvtDataType == 2 || MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5)) {
 //            if (Integer.parseInt(rssi) < rssiLimit)
 //                return;
 //        }
-        //如果已存在，就拿到数量 ,note：因为EPC不唯一，又有客户把EPC弄成一样的，所以不能只以EPC区分
-        // If it already exists, get the number
-        Integer number = dataMap.get(/*epc*/filterData);
-        if (number == null) {
-            dataMap.put(/*epc*/filterData, 1);
-            updateUI(epc, tid, usr, rfu, rssi,1);
-        } else {
-            int newNB = number + 1;
-            dataMap.put(/*epc*/filterData, newNB);
-            updateUI(epc, tid, usr, rfu, rssi,newNB);
+                    //如果已存在，就拿到数量 ,note：因为EPC不唯一，又有客户把EPC弄成一样的，所以不能只以EPC区分
+                    // If it already exists, get the number
+                    Integer number = dataMap.get(/*epc*/filterData);
+                    if (number == null) {
+                        dataMap.put(/*epc*/filterData, 1);
+                        updateUI(epc, tid, usr, rfu, rssi, 1);
+                    } else {
+                        int newNB = number + 1;
+                        dataMap.put(/*epc*/filterData, newNB);
+                        updateUI(epc, tid, usr, rfu, rssi, newNB);
+                    }
+                    MqttPub(resourceMap,tid,flight,pnr);
+                }
+            }
         }
+
+
     }
 
     @Override
@@ -396,7 +503,18 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
             }
         });
     }
-
+    public static String hexToString(String hexString) {
+        StringBuilder result = new StringBuilder();
+        // Iterate over each pair of hexadecimal characters
+        for (int i = 0; i < hexString.length(); i += 2) {
+            // Convert each pair to its ASCII representation
+            String hexPair = hexString.substring(i, i + 2);
+            int decimalValue = Integer.parseInt(hexPair, 16);
+            // Append the character to the result
+            result.append((char) decimalValue);
+        }
+        return result.toString();
+    }
     boolean isDown  = true;
     @Override
     public void onKeyDown(int keyCode, KeyEvent event) {
@@ -431,6 +549,8 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
     private List<String> realKeyList = new ArrayList<>();
     //tid info
     private List<String> tidList = new ArrayList<>();
+    //epc info
+    private List<String> epcList = new ArrayList<>();
     //usr info
     private List<String> usrList = new ArrayList<>();
     //rfu info
@@ -445,7 +565,7 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                String filterData = MyApp.currentInvtDataType == 1 || MyApp.currentInvtDataType == 2 || MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5 ? tid : epc;
+                String filterData = MyApp.currentInvtDataType == 1 ||  MyApp.currentInvtDataType == 4 || MyApp.currentInvtDataType == 5 ? epc : tid; //MyApp.currentInvtDataType == 2 ||
                 if (readNumberss > 1) {
                     //修改数量
                     //Modified quantity
@@ -457,7 +577,8 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
                 } else {
                     realDataMap.put(/*epc*/filterData, 1);
                     realKeyList.add(/*epc*/filterData);
-                    tidList.add(MyApp.currentInvtDataType <= 0 ? tid : epc);
+                    tidList.add(MyApp.currentInvtDataType <= 0 ? epc : tid);
+                    epcList.add(epc);
                     usrList.add(usr);
                     rfuList.add(rfu);
                     rssiList.add(rssi);
@@ -560,10 +681,11 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
 
     private void refreshTagDataTypeShow(int position) {
         clearData();
-        epcShow.setVisibility(position == 1 ? View.GONE : View.VISIBLE);
-        tidShow.setVisibility(position == 0 || position == 3 || position == 6 ? View.GONE : View.VISIBLE);
+       // epcShow.setVisibility(position == 1 ? View.GONE : View.VISIBLE);
+       // tidShow.setVisibility(position == 0 || position == 3 || position == 6 ? View.GONE : View.GONE);
         usrShow.setVisibility(position == 3 || position == 4 ? View.VISIBLE : View.GONE);
         rfuShow.setVisibility(position == 5 || position == 6 ? View.VISIBLE : View.GONE);
+        flight_pnr_show_divd_Line.setVisibility(position == 3  ? View.GONE : View.VISIBLE);
         epc_tid_show_divd_Line.setVisibility(position == 0 || position == 3 || position == 6 ? View.GONE : View.VISIBLE);
         epc_usr_show_divd_Line.setVisibility(position == 3 || position == 4 ? View.VISIBLE : View.GONE);
         epc_rfu_show_divd_Line.setVisibility(position == 5 || position == 6 ? View.VISIBLE : View.GONE);
@@ -575,9 +697,13 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
             MyApp.ifFirst = false;
             return;
         }
-        MyApp.currentInvtDataType = position;
-        mListAdapter.setMode(position);
-        refreshTagDataTypeShow(position);
+        Log.e("KENG HZOU",""+position);
+      //  MyApp.currentInvtDataType = position;
+      //  mListAdapter.setMode(position);
+      //  refreshTagDataTypeShow(position);
+        MyApp.currentInvtDataType = 2;
+        mListAdapter.setMode(2);
+        refreshTagDataTypeShow(2);
         //OnlyTID+EPC,和EPC模式
         //OnlyTID+EPC,and EPC MODE
         switch(position) {
@@ -606,16 +732,20 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
         //position = Math.min(position, 1);
         if (position == 2 || position == 3) {
             boolean i = MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(position, 0, 24, 0);
-            MLog.e("position= " + position + " readTagModeSet = " + i);
+
         }
         else if (position ==1) {
             boolean i =MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(position, 0, 6, 0);
+            Log.e("KENGHZOU","2position= " + position + " readTagModeSet = " + i);
         }else if (position==5) {
             boolean i = MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(position, 4, 1, 0);
+
         }
         else {
-            boolean i =MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(position, 0, 0, 0);
+            //boolean i =MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(position, 0, 0, 0);
+            boolean i =MyApp.getMyApp().getUhfMangerImpl().readTagModeSet(1, 0, 6, 0);
             MLog.e("position= " + position + " readTagModeSet = " + i);
+            Log.e("KENGHZOU","4position= " + position + " readTagModeSet = " + i);
         }
 
     }
@@ -726,7 +856,7 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
      */
     public void acquireWakeLock() {
         if (wakeLock == null) {
-            PowerManager pm = (PowerManager) Objects.requireNonNull(getActivity()).getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = (PowerManager) requireActivity().getSystemService(Context.POWER_SERVICE);
             wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, this.getClass().getCanonicalName());
             wakeLock.acquire();
         }
@@ -745,11 +875,15 @@ public class LeftFragment extends BaseFragment implements View.OnClickListener, 
     private void reducingPowerDissipation(boolean ifStart) {
         Intent PowerDissipation = new Intent("android.intent.action.CONTINUCEUHF");
         PowerDissipation.putExtra("ifStart",ifStart);
-        Objects.requireNonNull(getContext()).sendBroadcast(PowerDissipation);
+        requireContext().sendBroadcast(PowerDissipation);
 //        if (ifStart)
 //            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 //        else
 //            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
+    @Override
+    public void onCheckedChanged(RadioGroup radioGroup, int i) {
+        clearData();
+    }
 }
